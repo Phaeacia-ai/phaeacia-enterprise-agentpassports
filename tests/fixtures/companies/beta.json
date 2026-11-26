@@ -1,0 +1,33 @@
+{
+  "id": "beta",
+  "name": "SYNTHETIC Beta Logistics",
+  "memberships": [
+    { "id": "m-beta-1", "display_name": "SYNTHETIC Beta admin", "role": "admin", "status": "active" },
+    { "id": "m-beta-2", "display_name": "SYNTHETIC Beta recipient", "role": "member", "status": "active" },
+    { "id": "m-beta-3", "display_name": "SYNTHETIC Beta former member", "role": "member", "status": "removed" }
+  ],
+  "groups": [
+    { "id": "g-beta-dispatch", "name": "SYNTHETIC dispatch desk", "members": ["m-beta-1", "m-beta-2"] },
+    { "id": "g-beta-archive", "name": "SYNTHETIC archive readers", "members": ["m-beta-1"] }
+  ],
+  "passports": [
+    {
+      "id": "p-beta-1",
+      "file": "tests/passport/fixtures/synthetic-declared-losses.md",
+      "owner": "m-beta-1",
+      "audience": "g-beta-archive",
+      "state": "submitted",
+      "release": null,
+      "installation": null
+    },
+    {
+      "id": "p-beta-2",
+      "file": "tests/passport/fixtures/synthetic-empty.md",
+      "owner": "m-beta-1",
+      "audience": "g-beta-dispatch",
+      "state": "published",
+      "release": { "id": "r-beta-2-generic", "branch": "generic", "published_at": "2026-09-10T09:00:00Z" },
+      "installation": "tests/passport/fixtures/installation-reported.json"
+    }
+  ]
+}

@@ -1,0 +1,220 @@
+/* Recipient passport page, /p/:id. Loaded after base.css and only on this
+   route, because this is the only page that renders the artefact.
+
+   Theming contract, from the top of tokens.css: the complete light palette is
+   declared on bare :root and dark blocks redefine values only. Nothing here
+   declares a colour of its own at all. Every value is a var(--ph-…) or a
+   var(--pp-…) that base.css and tokens.css already define in both schemes, so
+   there is nothing to redeclare in a media query and no colour whose first
+   definition is inside one. */
+
+/* ── the route to the install block ───────────────────────────────────────
+   Sits above the document, on the same left edge as everything else, so the
+   eyebrow it shares a row with is not moved by it. At 640 and below the pair
+   stacks and the button takes the column, because a half-width action next to
+   a wrapped eyebrow reads as an afterthought and this is the action the page
+   exists to produce. */
+.jumprow {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+}
+.jumprow .eyebrow { flex: 1 1 auto; min-width: 0; }
+
+/* .btn is a single-line control. This one carries a second line, so the base
+   rule's centred single row has to become a two-row block: the height comes
+   off the content instead of the fixed min-height, and the label stays the
+   thing you read first. */
+.jumpbtn {
+  flex: 0 0 auto;
+  display: inline-flex; flex-direction: column; align-items: flex-start;
+  gap: 2px; padding: 10px 20px; line-height: 1.25; text-align: left;
+}
+.jumpbtn .sub {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  opacity: .82;
+}
+
+/* The jump lands on a section, and the section is focusable so a keyboard user
+   arrives inside the picker rather than back at the top of the tab order.
+
+   scroll-margin gives the heading breathing room. IT IS NOT CLEARANCE FOR A
+   STICKY TOPBAR, which is what this comment said until 2026-09-02. No stylesheet
+   in this repo makes the topbar sticky: grepped every .css for `topbar` together
+   with `sticky` or `fixed`, and the only two hits were this sentence asserting it
+   and the twin rule in base.css denying it. The 24px is right and its stated
+   reason was not.
+
+   That matters more than a wrong word, because the number reads as derived from
+   a constraint. Someone re-deriving it against a topbar height would change it,
+   and someone making the topbar sticky would leave it alone believing it already
+   accounts for that. It matches .rail's sticky top instead, so a heading and its
+   rail numeral land level. base.css carries the same value for every [id] and
+   says what has to change if a sticky topbar ever arrives. */
+#install { scroll-margin-top: 24px; }
+#install:focus { outline: none; }
+#install:focus-visible { outline: 2px solid var(--ph-deep); outline-offset: 4px; }
+
+@media (max-width: 640px) {
+  .jumprow { gap: 12px; }
+  .jumpbtn { width: 100%; align-items: center; text-align: center; }
+}
+
+/* ── page 1: the purpose line ─────────────────────────────────────────────
+   A field a real travel document carries, so the one line that says what the
+   agent does can sit on the cover without the artefact stopping being a
+   passport played straight.
+
+   ::first-letter is the only liberty taken with the owner's text. The stored
+   value is a YAML fragment that begins lower-case, and the alternative was
+   either a lower-case opening on a cover, which reads as a bug, or editing
+   somebody else's sentence in the renderer, which is the thing this product
+   does not do. Case is presentation here, the way the uppercase labels around
+   it are presentation. */
+.cover-purpose {
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--pp-cover-line);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.cover-purpose .pv {
+  color: var(--pp-cover-ink);
+  font-size: var(--ph-t-h3); line-height: 1.4;
+  max-width: 44ch; text-wrap: pretty;
+}
+.cover-purpose .pv::first-letter { text-transform: uppercase; }
+/* .72, computed rather than eyeballed, because this is 11px text and 11px text
+   has no large-scale exemption. Composited: paper at .72 over the light cover
+   (--ph-deep) is 6.6:1, and ink at .72 over the dark cover (--ph-shoal-soft) is
+   6.3:1. Both clear the 4.5 floor with room, and the label still sits below the
+   line it annotates. */
+.cover-purpose .src {
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  letter-spacing: var(--ph-tr-micro); text-transform: uppercase;
+  color: var(--pp-cover-ink); opacity: .72;
+}
+
+/* The cover has to get the purpose line above the fold on a phone, and it was
+   already spending 48px of air twice plus 48px of padding to do nothing. This
+   is the same cover, breathing less. */
+@media (max-width: 640px) {
+  .page.cover { padding: 32px 24px; gap: 28px; }
+  .cover-purpose .pv { font-size: var(--ph-t-body); }
+}
+
+/* ── page 2: the source-stack note ────────────────────────────────────────
+   Sits under the field list, above Observations, in the page's own voice. The
+   field is provenance and reads as an instruction if nothing says otherwise. */
+.fieldnote {
+  margin-top: 12px;
+  font-size: var(--ph-t-micro); line-height: 1.6;
+  color: var(--ph-mute); max-width: var(--ph-measure);
+}
+
+/* ── page 3: the legend, folded ───────────────────────────────────────────
+   The strip stays. The field-by-field decode is an offer now, not homework. */
+.mrzcap {
+  margin-top: 12px;
+  font-size: var(--ph-t-small); line-height: 1.6; color: var(--ph-mute);
+}
+.mrzkey { margin-top: 8px; }
+.mrzkey > summary {
+  display: inline-flex; align-items: center; gap: 8px;
+  cursor: pointer; list-style: none;
+  min-height: 44px;                     /* a real touch target, not a caption */
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-deep);
+}
+.mrzkey > summary::-webkit-details-marker { display: none; }
+.mrzkey > summary::before {
+  content: ""; width: 7px; height: 7px; flex: 0 0 auto;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+  transition: transform .14s ease;
+}
+.mrzkey[open] > summary::before { transform: rotate(-135deg) translate(-1px, -1px); }
+.mrzkey > summary:hover { color: var(--ph-tide); }
+.mrzkey > summary:focus-visible { outline: 2px solid var(--ph-deep); outline-offset: 3px; }
+/* The decode grid's first row sits straight under the summary, so it loses the
+   24px it used to need when it followed the strip directly. */
+.mrzkey .decode { margin-top: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mrzkey > summary::before { transition: none; }
+}
+
+/* ── page 4: what you will need ───────────────────────────────────────────
+   The scannable half of entry permissions, above the stamps. Three groups, a
+   count each, and the capability names as list items so nothing on it can be
+   mistaken for a sentence somebody wrote. */
+.reqs {
+  margin-bottom: 24px; padding: 20px 24px;
+  background: var(--ph-paper-deep);
+  border: 1px solid var(--ph-line); border-radius: var(--ph-r-md);
+  display: flex; flex-direction: column; gap: 16px;
+}
+.reqs-h {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-mute);
+}
+.reqs-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(216px, 1fr));
+  gap: 20px 32px;
+}
+.rq { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.rq .rl {
+  display: flex; align-items: baseline; gap: 8px;
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  line-height: 1.45; color: var(--ph-ink);
+}
+/* The count is the thing the eye lands on, so it is set at reading size inside
+   a label set at label size, and given a fixed advance so three groups line up
+   down their left edge whatever the numbers are. */
+.rq .rl .c {
+  flex: 0 0 auto; min-width: 1.4em;
+  font-size: var(--ph-t-body); line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.rq ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.rq li {
+  font-size: var(--ph-t-small); line-height: 1.5; color: var(--ph-ink);
+  padding-left: 14px; position: relative; overflow-wrap: anywhere;
+}
+.rq li::before {
+  content: ""; position: absolute; left: 0; top: .62em;
+  width: 6px; height: 1px; background: currentColor; opacity: .55;
+}
+.rq.req .rl .c { color: var(--ph-ink); }
+.rq.opt .rl, .rq.opt li { color: var(--ph-mute); }
+.rq.no  .rl { color: var(--pp-refused); }
+.rq.no  li  { color: var(--ph-mute); text-decoration: line-through;
+              text-decoration-color: var(--pp-refused); text-decoration-thickness: 1px; }
+.reqs-note {
+  font-size: var(--ph-t-small); line-height: 1.6;
+  color: var(--ph-mute); max-width: 72ch;
+}
+
+/* ── the declaration, no longer a page ────────────────────────────────────
+   Same warmer ground the declaration page had, and the same signature line,
+   but no folio: it is a note at the foot of the artefact rather than a
+   numbered page whose only content is a promise. Why, in _render.mjs. */
+.docnote {
+  padding: 24px 32px 28px;
+  border-top: 1px solid var(--ph-line);
+  background: var(--ph-paper-deep);
+}
+.docnote .page-head { margin-bottom: 16px; }
+.docnote .dn {
+  font-size: var(--ph-t-small); line-height: 1.6;
+  color: var(--ph-mute); max-width: 72ch;
+}
+.docnote thead th,
+.docnote .scroll { background: var(--ph-paper-deep); }
+.docnote .observations { margin-top: 20px; padding-top: 12px; }
+
+@media (max-width: 640px) {
+  .reqs { padding: 16px; }
+  .docnote { padding: 24px 24px 24px; }
+}

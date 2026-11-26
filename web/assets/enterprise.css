@@ -1,0 +1,1058 @@
+/* The owned stylesheet of the enterprise pages (pages design 4.1 and 4.6). It reads the custom properties of the
+   vendored tokens.css that the build publishes beside it, so light and dark follow the brand tokens. It references no
+   file and pulls in no other stylesheet, and the pages carry no style attribute (section 3, rule 4). Every layout wraps or stacks
+   before it can overflow a 390-pixel viewport: long unbroken values (addresses, setup keys, names) break anywhere, and
+   the QR image never grows past its container. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* UI updates U4 (evidence/ui-updates.md), the shapes the public app draws: every button, button-styled link and
+   single-line field is a full pill (the vendored --ph-r-pill), and every multi-line box takes the large rounded corner
+   of the public app's instructions box, 20 pixels, which no vendored token holds. Chips stay pills; tables and the
+   header rule are not boxes. Focus outlines follow each shape, as the browser draws an outline along the corner. */
+:root {
+  --box-radius: 20px;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ph-paper);
+  color: var(--ph-ink);
+  font-family: var(--ph-sans);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+.page {
+  max-width: 56rem;
+  margin: 0 auto;
+  padding: 0 var(--ph-5) var(--ph-8);
+}
+
+/* Header */
+
+.site-header {
+  border-bottom: 1px solid var(--ph-line);
+}
+
+.bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ph-3) var(--ph-5);
+  padding: var(--ph-4) 0;
+}
+
+/* The lockup stacks: "Phaeacia" on one line and "ENTERPRISE" beneath it, both left-aligned (UI updates U1,
+   evidence/ui-updates.md). */
+.lockup {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  line-height: 1.15;
+  color: var(--ph-ink);
+  text-decoration: none;
+}
+
+.lockup .mark {
+  font-weight: 700;
+  font-size: 1.125rem;
+  letter-spacing: -0.015em;
+}
+
+.lockup .product {
+  font-family: var(--ph-mono);
+  font-size: 0.75rem;
+  letter-spacing: var(--ph-tr-micro);
+  text-transform: uppercase;
+  color: var(--ph-mute);
+}
+
+.company {
+  font-weight: 600;
+  color: var(--ph-ink);
+  padding-left: var(--ph-4);
+  border-left: 1px solid var(--ph-line);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ph-2) var(--ph-4);
+  margin-left: auto;
+  min-width: 0;
+}
+
+/* The account link is a person icon in a round 44-pixel control, as the public app's round header control is drawn;
+   the glyph is two strokes in the link's colour, a head and shoulders, drawn in the public app's line weight
+   (UI updates U2). */
+.account {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 1px solid var(--ph-line);
+  border-radius: 50%;
+  color: var(--ph-deep);
+}
+
+.account:hover,
+.account[aria-current] {
+  background: var(--ph-shoal-soft);
+  color: var(--ph-ink);
+}
+
+.user-icon {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.user-icon::before,
+.user-icon::after {
+  content: "";
+  position: absolute;
+  border: 1.6px solid currentColor;
+}
+
+.user-icon::before {
+  top: 2px;
+  left: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.user-icon::after {
+  top: 12px;
+  left: 3px;
+  width: 14px;
+  height: 7px;
+  border-bottom: 0;
+  border-radius: 7px 7px 0 0;
+}
+
+.signout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--ph-2);
+}
+
+.meta {
+  color: var(--ph-mute);
+  font-size: var(--ph-t-small);
+}
+
+/* The sign-out confirmation (UI updates U3): a native modal dialog, narrower than a phone's column, its two buttons
+   side by side where they fit and stacked full width on a phone by the .actions rule below. Its class is modal, since
+   the build refuses the text a dialog class followed by a pseudo-element would spell (scripts/check-render.mjs). */
+dialog.modal {
+  width: min(26rem, calc(100vw - 2 * var(--ph-4)));
+  max-width: none;
+  margin: auto;
+  padding: var(--ph-5);
+  border: 1px solid var(--ph-line);
+  border-radius: var(--box-radius);
+  background: var(--ph-card);
+  color: var(--ph-ink);
+}
+
+/* A dark wash in both themes: the ink token turns light in the dark theme, so it would brighten the page there. */
+dialog.modal::backdrop {
+  background: rgb(7 27 35 / 0.5);
+}
+
+dialog.modal p {
+  margin: 0 0 var(--ph-4);
+  font-weight: 600;
+}
+
+dialog.modal .actions {
+  margin: 0;
+}
+
+/* Type */
+
+main {
+  display: block;
+  padding-block: var(--ph-6);
+}
+
+main:focus {
+  outline: none;
+}
+
+h1 {
+  font-size: clamp(1.625rem, 1.3rem + 1.2vw, 2.25rem);
+  line-height: var(--ph-lh-head);
+  letter-spacing: var(--ph-tr-head);
+  font-weight: 650;
+  margin: 0 0 var(--ph-2);
+  overflow-wrap: anywhere;
+}
+
+h1:focus {
+  outline: none;
+}
+
+h2 {
+  font-size: 1.1875rem;
+  line-height: var(--ph-lh-head);
+  letter-spacing: -0.01em;
+  font-weight: 650;
+  margin: var(--ph-6) 0 var(--ph-3);
+}
+
+h3 {
+  font-size: var(--ph-t-small);
+  font-weight: 600;
+  color: var(--ph-mute);
+  margin: var(--ph-5) 0 var(--ph-2);
+}
+
+p {
+  margin: 0 0 var(--ph-3);
+  max-width: var(--ph-measure);
+}
+
+.heading {
+  margin-bottom: var(--ph-5);
+}
+
+.lead {
+  color: var(--ph-mute);
+  font-size: 1.0625rem;
+}
+
+a {
+  color: var(--ph-deep);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  color: var(--ph-tide);
+}
+
+bdi,
+code {
+  overflow-wrap: anywhere;
+}
+
+time {
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--ph-mute);
+  font-weight: 400;
+}
+
+.loading {
+  color: var(--ph-mute);
+}
+
+/* Controls */
+
+/* A button is a block of inline text, not a flex container: a label made of text and an isolated address must wrap as
+   one run of words ("Continue as <address>"), which separate flex items do not. */
+button,
+.button {
+  font: inherit;
+  font-weight: 600;
+  display: inline-block;
+  min-height: 2.75rem;
+  max-width: 100%;
+  padding: 0.6rem 1.25rem;
+  border: 1px solid var(--ph-deep);
+  border-radius: var(--ph-r-pill);
+  background: var(--ph-deep);
+  color: var(--ph-paper);
+  line-height: 1.4;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: break-word;
+  cursor: pointer;
+}
+
+button:hover,
+.button:hover {
+  background: var(--ph-tide);
+  border-color: var(--ph-tide);
+  color: var(--ph-paper);
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+button.secondary,
+.button.secondary {
+  background: transparent;
+  color: var(--ph-deep);
+}
+
+button.secondary:hover,
+.button.secondary:hover {
+  background: var(--ph-shoal-soft);
+  color: var(--ph-ink);
+}
+
+button.quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ph-deep);
+  min-height: 2.25rem;
+  padding-inline: var(--ph-3);
+}
+
+button.quiet:hover {
+  background: var(--ph-shoal-soft);
+  color: var(--ph-ink);
+}
+
+button.danger {
+  background: transparent;
+  border-color: var(--ph-bad);
+  color: var(--ph-bad);
+}
+
+button.danger:hover {
+  background: var(--ph-bad);
+  border-color: var(--ph-bad);
+  color: var(--ph-paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--ph-deep);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ph-3);
+  margin: var(--ph-4) 0;
+}
+
+.narrow {
+  max-width: 36rem;
+}
+
+.stack {
+  display: grid;
+  gap: var(--ph-4);
+  max-width: 30rem;
+  margin: var(--ph-4) 0;
+}
+
+.stack > button {
+  justify-self: start;
+}
+
+.field {
+  display: grid;
+  gap: var(--ph-1);
+  min-width: 0;
+}
+
+label,
+legend {
+  font-weight: 600;
+  font-size: var(--ph-t-small);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+select {
+  font: inherit;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-pill);
+  background: var(--ph-card);
+  color: var(--ph-ink);
+}
+
+input[type="number"] {
+  max-width: 8rem;
+}
+
+input[type="date"] {
+  max-width: 14rem;
+}
+
+input[inputmode="numeric"][autocomplete="one-time-code"] {
+  font-family: var(--ph-mono);
+  font-size: 1.25rem;
+  letter-spacing: 0.2em;
+  max-width: 12rem;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0;
+  flex: none;
+  accent-color: var(--ph-deep);
+}
+
+fieldset.choice {
+  display: grid;
+  gap: var(--ph-2);
+  min-width: 0;
+  margin: 0;
+  padding: var(--ph-3) var(--ph-4);
+  border: 1px solid var(--ph-line);
+  border-radius: var(--box-radius);
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--ph-2);
+  min-width: 0;
+}
+
+.option label {
+  font-weight: 400;
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+/* Notices and states */
+
+.notice {
+  max-width: var(--ph-measure);
+  margin: var(--ph-4) 0;
+  padding: var(--ph-3) var(--ph-4);
+  border: 1px solid color-mix(in srgb, var(--ph-brass) 35%, var(--ph-line));
+  border-radius: var(--box-radius);
+  background: var(--ph-brass-soft);
+  overflow-wrap: anywhere;
+}
+
+.notice > p:last-child {
+  margin-bottom: 0;
+}
+
+.notice > p + button,
+.notice > p + a {
+  margin-top: var(--ph-2);
+}
+
+.notice.confirm {
+  border-color: color-mix(in srgb, var(--ph-good) 45%, var(--ph-line));
+  background: var(--ph-card);
+}
+
+.notice[data-state="not-found"],
+.notice[data-state="maintenance"] {
+  border-color: var(--ph-line);
+  background: var(--ph-card);
+}
+
+.notice[data-state="not-found"] h1 {
+  font-size: 1.5rem;
+}
+
+.confirm {
+  color: var(--ph-ink);
+}
+
+p.confirm {
+  font-weight: 600;
+}
+
+.status:empty {
+  display: none;
+}
+
+.state {
+  max-width: 36rem;
+}
+
+/* Panels and lists */
+
+.panel {
+  margin: var(--ph-5) 0;
+  padding: var(--ph-4) var(--ph-5);
+  border: 1px solid var(--ph-line);
+  border-radius: var(--box-radius);
+  background: var(--ph-card);
+}
+
+.panel h2 {
+  margin-top: 0;
+}
+
+.panel > :last-child {
+  margin-bottom: 0;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ph-3);
+  margin-bottom: var(--ph-3);
+}
+
+.page-head .heading {
+  margin-bottom: var(--ph-2);
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  gap: var(--ph-2);
+}
+
+.cards {
+  display: grid;
+  gap: var(--ph-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  min-width: 0;
+  padding: var(--ph-3) var(--ph-4);
+  border: 1px solid var(--ph-line);
+  border-radius: var(--box-radius);
+  background: var(--ph-card);
+}
+
+.card[data-status="removed"],
+.card[data-state="revoked"],
+.card[data-state="expired"] {
+  background: transparent;
+}
+
+.card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ph-2);
+  min-width: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.card .meta {
+  margin: var(--ph-1) 0 0;
+}
+
+.label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.tag {
+  font-family: var(--ph-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ph-mute);
+  padding: 0 var(--ph-2);
+  border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-pill);
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ph-2);
+  margin-top: var(--ph-3);
+}
+
+.tools:empty {
+  display: none;
+}
+
+.tools > fieldset,
+.tools > .actions,
+.confirm-box {
+  flex: 1 1 100%;
+}
+
+.confirm-box p {
+  margin-bottom: var(--ph-2);
+}
+
+.tools > .actions {
+  margin: 0;
+}
+
+/* Second factor */
+
+.steps {
+  display: grid;
+  gap: var(--ph-5);
+  margin: var(--ph-4) 0;
+  padding-left: 1.25rem;
+}
+
+.steps > li {
+  padding-left: var(--ph-1);
+}
+
+.qr-frame {
+  display: inline-block;
+  max-width: 100%;
+  padding: var(--ph-3);
+  border: 1px solid var(--ph-line);
+  border-radius: var(--box-radius);
+  background: #fff;
+}
+
+.qr {
+  display: block;
+  width: min(15rem, 100%);
+  height: auto;
+}
+
+.secret {
+  display: block;
+  padding: var(--ph-3) var(--ph-4);
+  border-radius: var(--box-radius);
+  background: var(--ph-paper-deep);
+  font-family: var(--ph-mono);
+  font-size: 1.0625rem;
+  letter-spacing: 0.06em;
+  word-spacing: 0.3em;
+}
+
+/* Reviews, releases and audience groups (E4 design 4.1) */
+
+.company-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ph-2) var(--ph-4);
+  margin: 0 0 var(--ph-4);
+  font-size: var(--ph-t-small);
+}
+
+.company-links [aria-current] {
+  font-weight: 600;
+  color: var(--ph-ink);
+}
+
+.toolbar-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ph-3);
+  margin: var(--ph-3) 0 var(--ph-4);
+}
+
+.toolbar-row .company-links {
+  margin: 0;
+}
+
+/* The boundary sentence and the withdrawal text: fixed page text, set apart and never folded away. */
+.boundary {
+  max-width: var(--ph-measure);
+  margin: var(--ph-4) 0;
+  padding: var(--ph-3) var(--ph-4);
+  border: 1px solid var(--ph-deep);
+  border-radius: var(--box-radius);
+  background: var(--ph-card);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.lines {
+  display: grid;
+  gap: var(--ph-2);
+  margin: var(--ph-2) 0;
+  padding-left: 1.1rem;
+}
+
+.lines > li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+dl.facts {
+  display: grid;
+  grid-template-columns: minmax(9rem, max-content) minmax(0, 1fr);
+  gap: var(--ph-1) var(--ph-4);
+  margin: var(--ph-3) 0;
+}
+
+dl.facts > div {
+  display: contents;
+}
+
+dl.facts dt {
+  color: var(--ph-mute);
+  font-size: var(--ph-t-small);
+}
+
+dl.facts dd {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.hash {
+  font-family: var(--ph-mono);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+  word-break: break-all;
+}
+
+.table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: var(--ph-2) 0 var(--ph-3);
+}
+
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--ph-t-small);
+}
+
+/* break-word, not anywhere: anywhere lets a column shrink below its longest word, and the phone capture showed
+   "Required" split across two lines (journey JE6 now checks that no word in a data table does). */
+table.data th,
+table.data td,
+table.data bdi {
+  overflow-wrap: break-word;
+}
+
+table.data th,
+table.data td {
+  padding: var(--ph-2) var(--ph-3);
+  border-bottom: 1px solid var(--ph-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+table.data th {
+  font-weight: 600;
+  color: var(--ph-mute);
+}
+
+.content-pane {
+  max-height: 28rem;
+  overflow: auto;
+  margin: var(--ph-2) 0 0;
+  padding: var(--ph-3) var(--ph-4);
+  border: 1px solid var(--ph-line);
+  border-radius: var(--box-radius);
+  background: var(--ph-paper-deep);
+  font-family: var(--ph-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.packet > div {
+  margin-bottom: var(--ph-4);
+}
+
+.reason {
+  margin: var(--ph-1) 0 0;
+  padding: var(--ph-2) var(--ph-4);
+  border-radius: var(--box-radius);
+  background: var(--ph-paper-deep);
+  overflow-wrap: anywhere;
+}
+
+.verdict {
+  font-weight: 600;
+}
+
+.stale {
+  color: var(--ph-bad);
+}
+
+.kind {
+  font-weight: 600;
+}
+
+textarea {
+  font: inherit;
+  width: 100%;
+  min-height: 6rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--ph-line);
+  border-radius: var(--box-radius);
+  background: var(--ph-card);
+  color: var(--ph-ink);
+  resize: vertical;
+}
+
+fieldset.choice.scroll {
+  max-height: 16rem;
+  overflow: auto;
+}
+
+.panel h3 {
+  margin-top: 0;
+  font-size: 1.0625rem;
+  color: var(--ph-ink);
+}
+
+.panel > .field,
+.panel > fieldset,
+.add-member > fieldset {
+  margin: var(--ph-3) 0;
+}
+
+.change-request {
+  margin-top: var(--ph-2);
+}
+
+.change-request > p {
+  margin-bottom: 0;
+}
+
+@media (max-width: 40rem) {
+  dl.facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  dl.facts dd {
+    margin-bottom: var(--ph-2);
+  }
+
+  .toolbar-row > button {
+    flex: 1 1 100%;
+  }
+}
+
+@media (max-width: 40rem) {
+  .page {
+    padding-inline: var(--ph-4);
+  }
+
+  main {
+    padding-block: var(--ph-5);
+  }
+
+  .company {
+    padding-left: 0;
+    border-left: 0;
+    flex: 1 1 100%;
+    order: 3;
+  }
+
+  /* The account icon and Sign out stay at the right of the lockup's line when they fit, as on a wide screen, rather
+     than taking a line of their own (UI updates U2). */
+  .who {
+    gap: var(--ph-2);
+  }
+
+  .actions > button,
+  .actions > .button {
+    flex: 1 1 100%;
+  }
+
+  .panel {
+    padding: var(--ph-3) var(--ph-4);
+  }
+}
+
+/* E5: the catalog and the installation sections of the release page (E5 design 4.1). Presentation only: every
+   decision on these screens is the service's, and the classes here change nothing a page renders. */
+
+.card.report {
+  background: var(--ph-paper-deep);
+}
+
+.card.report .cards,
+.cards .cards {
+  margin-top: var(--ph-2);
+}
+
+[data-role="mine"] {
+  margin-top: var(--ph-2);
+}
+
+[data-role="witness-control"] {
+  margin-top: var(--ph-2);
+}
+
+[data-role="install-section"] .losses,
+[data-role="install-section"] .content {
+  margin-top: var(--ph-4);
+}
+
+[data-role="check-in"] {
+  display: grid;
+  justify-items: start;
+  gap: var(--ph-2);
+}
+
+/* The E3 intake pages (docs/e3/intake-pages-design.md sections 6 and 8). Presentation only: the upload and draft forms
+   are as wide as the column, the passport text box is monospace and wraps so no line widens a phone page, and the file
+   input takes the full width. */
+
+.stack.wide {
+  max-width: none;
+}
+
+textarea.passport-text {
+  min-height: 16rem;
+  font-family: var(--ph-mono);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+input[type="file"] {
+  font: inherit;
+  width: 100%;
+  max-width: 100%;
+  min-height: 2.75rem;
+}
+
+/* The file input's own button, a pill in the secondary style (UI updates U4). */
+input[type="file"]::file-selector-button {
+  font: inherit;
+  font-weight: 600;
+  min-height: 2.75rem;
+  margin-right: var(--ph-3);
+  padding: 0.6rem 1.25rem;
+  border: 1px solid var(--ph-deep);
+  border-radius: var(--ph-r-pill);
+  background: transparent;
+  color: var(--ph-deep);
+  cursor: pointer;
+}
+
+input[type="file"]::file-selector-button:hover {
+  background: var(--ph-shoal-soft);
+  color: var(--ph-ink);
+}
+
+[data-role="problems-table"] code {
+  overflow-wrap: anywhere;
+}
+
+[data-role="submit-section"] textarea {
+  min-height: 4.5rem;
+}
+
+/* The capture prompt's box (HOSTED-F3, evidence/operator-landing.md): a read-only text area in the content pane's
+   type, the full width of its step and tall enough to read a screen of it, its overflow its own. Shorter since Capture an
+   agent put the upload form below it on the same page (evidence/add-agent.md). */
+textarea.capture-pane {
+  display: block;
+  height: 18rem;
+  margin: var(--ph-3) 0 var(--ph-2);
+}
+
+/* Capture an agent's three steps (evidence/add-agent.md), the public /create page's numbered steps made plain: an
+   ordered list of panels, each number a round mark beside its heading, which a screen reader leaves to the list's own
+   order. */
+.add-steps {
+  display: grid;
+  gap: var(--ph-4);
+  margin: var(--ph-4) 0;
+  padding: 0;
+  list-style: none;
+}
+
+.add-steps > .add-step {
+  margin: 0;
+  min-width: 0;
+}
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ph-3);
+  margin-bottom: var(--ph-2);
+}
+
+.step-head h2 {
+  margin: 0;
+  min-width: 0;
+}
+
+.step-number {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid var(--ph-deep);
+  border-radius: 50%;
+  font-weight: 700;
+}
+
+.add-step .stack.wide {
+  margin-bottom: 0;
+}
+
+/* The operator's navigation in the header (HOSTED-F2, evidence/operator-landing.md): Companies and New company (the
+   Account entry gave way to the account icon, UI updates U2), beside the lockup on a wide screen and wrapping onto a line of its own on a phone; the page the browser is on is
+   shown and not linked, as the company links show theirs. */
+.operator-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ph-2) var(--ph-4);
+  font-size: var(--ph-t-small);
+}
+
+.operator-nav [aria-current] {
+  font-weight: 600;
+  color: var(--ph-ink);
+}
+
+/* The glance at the top of the register (HOSTED-F2 item 3): three short parts in one panel, each a sentence or a list
+   of sentences; long company names break anywhere so nothing widens a 390-pixel page. The warning words are .tag text,
+   never colour alone. */
+.glance h3 {
+  margin: var(--ph-4) 0 var(--ph-1);
+}
+
+.glance-part .lines {
+  padding-left: 1.25rem;
+}
+
+.glance-part .tag {
+  white-space: nowrap;
+}
+
+fieldset.choice.order {
+  margin: 0 0 var(--ph-3);
+}

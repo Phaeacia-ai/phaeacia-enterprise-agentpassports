@@ -1,0 +1,60 @@
+# Secret scanning for the Phaeacia Enterprise repository.
+#
+# The repository's own gate is scripts/check-secrets.mjs, which runs the vendored Passport validator's secret rules
+# over every tracked text file and is part of scripts/check.sh. This file is for gitleaks, so that a scan of the
+# published tree is quiet only where a string is known to be synthetic.
+#
+# Rule for editing it: allowlist a path that exists to hold fake secrets, or a specific synthetic literal. Never
+# allowlist a rule globally or a directory that also holds application code, and say in the description why the
+# thing is not a secret.
+#
+#   gitleaks dir . --redact
+
+title = "Phaeacia Enterprise secret scanning"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = """
+vendor/passport/tools/fixtures/ is Agent Passport's scrubber and validator test corpus: deliberately fake Anthropic,
+OpenAI, GitHub, AWS, Stripe and Netlify key shapes, database URLs with invented passwords, and near-misses that must
+not be scrubbed. The vendored tree is byte-pinned to upstream.lock.json (scripts/import-passport.mjs --verify fails on
+any change), so nothing can be added here without failing the local checks.
+"""
+paths = ['''(^|/)vendor/passport/tools/fixtures/''']
+
+[[allowlists]]
+description = """
+The vendored validator, preflight check and their harnesses carry the probe strings they test their secret rules with
+(fake keys, a PEM header, credential-shaped URLs). Byte-pinned like the fixtures above.
+"""
+paths = ['''(^|/)vendor/passport/(web/tools/parity\.mjs|web/lib/_validate\.mjs|tools/run_tests\.sh|tools/preflight\.py|tools/scrub\.py)$''']
+
+[[allowlists]]
+description = """
+Synthetic values in the tests, exempt by exact literal and nowhere else: the HS256 secret the unit tests sign their own
+tokens with, the deploy check's placeholder values, the fake PostgREST key in tests/e3/unit/fake-postgrest.mjs and the
+token-shaped hostile string in tests/e8/fixtures/hostile-strings.mjs. None is used by any deployment.
+These are literal regexes with no path condition on purpose: gitleaks 8.30.1 applied an earlier
+`condition = "AND"` with `paths = tests/` as path-only, which exempted every file under tests/ from every rule.
+"""
+regexes = [
+  '''^example-unit-secret-with-at-least-32-characters-long$''',
+  '''^placeholder-[a-z-]+$''',
+  '''^91c28ca3-b5d6-4bf2-8d7e-8f9a0b1c2d34$''',
+  '''^sbp_0123456789abcdef0123456789abcdef01234567$''',
+]
+
+[[allowlists]]
+description = """
+upstream.lock.json records the SHA-256 of every vendored file. Where the file name says token or credential (the
+scrubber fixtures), gitleaks' generic-api-key rule reads the hash as a key. Exempt is only a whole line that is one
+JSON key and a 64-character lowercase hex value, which is what every hash line in the lock looks like.
+"""
+regexTarget = "line"
+regexes = ['''^\s*"[^"]+": "[0-9a-f]{64}",?\s*$''']
+
+[[allowlists]]
+description = "Local artefacts that are never committed (both are in .gitignore)."
+paths = ['''(^|/)(node_modules|\.scratch|\.site)/''']

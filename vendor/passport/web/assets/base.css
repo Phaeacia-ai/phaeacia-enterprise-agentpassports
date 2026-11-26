@@ -1,0 +1,1579 @@
+/* Phaeacia, Agent Passport: the product layer.
+
+   Loads AFTER assets/tokens.css. Every colour here comes from a parent token or
+   from the two product tokens --pp-granted and --pp-refused. Nothing declares a
+   raw hex, and nothing declares a colour for the first time inside a media
+   query: the theme switch happens once, in tokens.css, and this file only ever
+   reads.
+
+   Direction: PASSPORT-DIRECTION.md. The structure of a real travel document,
+   played straight. The engraved guilloché that used to live here is retired; it
+   belonged to a security document and this is a travel document.
+
+   Space scale: 4 8 12 16 24 32 48 72 112. Radii: 4 8 14 pill. No other values.
+
+   ══ contents ══════════════════════════════════════════════════════════════
+   0  reset and the [hidden] guard        6  tables and blocks
+   1  product-layer tokens                7  the passport document, pages 1-5
+   2  page shell and chrome               8  platform picker (tabs)
+   3  typography                          9  forms
+   4  buttons and links                  10  footer and legal
+   5  surfaces: cards, callouts, chips   11  responsive
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* ── 0. reset ─────────────────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; padding: 0; }
+
+/* The UA rule [hidden]{display:none} loses to ANY author display declaration,
+   regardless of specificity, because it lives in the UA origin. Several
+   elements here carry both `hidden` and a class that sets display:flex, which
+   once shipped three success states visible on first load. This is the guard,
+   and it is deliberately the first declaration in the file. */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+body {
+  /* v2.5 uses a flat working surface in both themes. */
+  background: var(--ph-paper);
+  color: var(--ph-ink);
+  font-family: var(--ph-sans);
+  font-size: var(--ph-t-body);
+  line-height: var(--ph-lh-body);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* clip, not hidden: hidden would kill position:sticky on the section rails.
+     Nothing is meant to overflow anyway; wide content scrolls inside itself. */
+  overflow-x: clip;
+}
+
+img, svg { max-width: 100%; }
+
+/* ── 1. product-layer tokens ──────────────────────────────────────────── */
+/* Values only, never new colours. Declared on bare :root, redefined in the two
+   dark blocks, exactly as tokens.css does it. */
+
+:root {
+  --pp-cover:      var(--ph-deep);        /* the cover is the deepest surface  */
+  --pp-cover-ink:  var(--ph-paper);
+  --pp-cover-line: var(--ph-tide);
+  --pp-blend:      multiply;              /* stamp ink sinking into paper      */
+  --pp-rail:       152px;
+  --pp-gap:        48px;
+
+  /* The document's four tracking steps. Machine type in a travel document is
+     letterspaced by what it is for, not by a rhythm: the meta rows sit just off
+     zero, the stamp face and the cover title are large caps that need air, and
+     the machine-readable strip is the widest thing on the artefact. These
+     replace five ad-hoc values that were scattered through the file, which is
+     how a second type system starts. --ph-tr-micro (.12em) still owns every
+     eyebrow and label; nothing here overlaps it. */
+  --pp-tr-doc:     .04em;   /* folio meta, doc foot, footer links            */
+  --pp-tr-face:    .08em;   /* the stamp face                                */
+  --pp-tr-title:   .1em;    /* cover title and the specimen overprint        */
+
+  /* The fourth step, the machine-readable strip, is carried unitless because
+     the strip solves its own font-size from it. See page 3 in section 7. */
+  --pp-tr-mrz:     .14;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Not --ph-paper: that is the page ground, so the cover vanished into it and
+       pages 2-5 read as paper while the strongest element read as a hole. In light
+       the cover is the deepest surface; in dark it is the lightest. What has to hold
+       in both is that it separates from the ground and leads the document. */
+    --pp-cover:      var(--ph-shoal-soft);
+    --pp-cover-ink:  var(--ph-ink);
+    --pp-cover-line: var(--ph-line);
+    --pp-blend:      screen;
+  }
+}
+
+:root[data-theme="dark"] {
+  --pp-cover:      var(--ph-shoal-soft);
+  --pp-cover-ink:  var(--ph-ink);
+  --pp-cover-line: var(--ph-line);
+  --pp-blend:      screen;
+}
+
+/* ── 2. page shell and chrome ─────────────────────────────────────────── */
+
+.wrap { max-width: var(--ph-wrap); margin-inline: auto; padding-inline: 32px; }
+.stack { display: flex; flex-direction: column; }
+
+::selection { background: var(--ph-shoal-soft); color: var(--ph-ink); }
+/* The cover needs its own selection colour. --ph-shoal-soft IS --pp-cover in dark,
+   so the default rule painted the highlight in the cover's own background and
+   selecting the agent name produced no visible highlight whatsoever. */
+.page.cover ::selection { background: var(--ph-tide); color: var(--ph-paper); }
+
+/* The focus ring. 2px --ph-deep at 3px offset, and no border-radius: an outline
+   already follows the element's own corners, and setting a radius here would
+   change the element's geometry on focus. */
+:focus-visible { outline: 3px solid var(--ph-deep); outline-offset: 4px; }
+
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 40;
+  background: var(--ph-card); color: var(--ph-ink);
+  border: 1px solid var(--ph-ink); border-radius: var(--ph-r-sm);
+  padding: 12px 16px; font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+}
+.skip:focus { left: 16px; top: 12px; }
+
+.vh {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+
+/* topbar. Wrap when the contents need more room, with no JavaScript in the nav.
+
+   This used to be a <details> disclosure. Chrome gives a closed <details> zero
+   intrinsic size, so styling its panel visible at wide widths let the links
+   overflow the flex row and get clipped: the nav was invisible at 1200px. A
+   three-link app does not need a disclosure. The links shed themselves from the
+   right as the viewport narrows, and the footer carries the full set on every
+   page. Measured before this: 130px of topbar chrome at 500px wide. */
+/* The bar lets the ground through instead of covering it. A flat --ph-paper bar
+   over a gradient reads as a strip of a different colour pasted along the top,
+   because that is exactly what it is: the ramp starts at --ph-ground-a and the
+   bar was painting the flat fallback next to it. The tint keeps the nav legible
+   where content scrolls under it, and the blur is what stops type-over-type.
+   -webkit- prefix retained: Safari still needs it for backdrop-filter.
+   No fallback needed for a browser without backdrop-filter — it gets the flat
+   tint alone, which is still a readable bar, just a less pretty one. */
+.topbar {
+  border-bottom: 1px solid var(--ph-line);
+  background: color-mix(in srgb, var(--ph-ground-a) 78%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+/* THE ROW HAS A FAILURE MODE, AND IT IS THE NAV DROPPING TO A SECOND LINE.
+   Until 2026-09-04 this was `display: flex` with no wrap, the lockup carried
+   min-width: 0 and the nav carried flex: none. A flex row built that way has
+   exactly one thing it can do when its children do not fit: shrink the lockup's
+   BOX under the lockup's CONTENT. The mark shrank first (it is width: auto, so it
+   went to 18px at 375 and to 0 across 431-533), then the product name wrapped to
+   two lines, then the wordmark printed straight through the first nav link.
+   Nothing overflowed, nothing scrolled, no check went red, and every
+   per-element rect looked reasonable; the only number that said anything was the
+   lockup's content right edge against the nav's left edge (ROW-159, ROW-160).
+
+   Every breakpoint below is in px and everything in the row is in rem, so the
+   two scale apart the moment a reader raises their browser's default font, which
+   is one click in Chrome's appearance settings. At a 20px root font the header
+   overprinted at 375 on main, and at 24px at every phone width. No ladder of
+   breakpoints can fix that, because the ladder is arithmetic about one font size
+   and one set of links, and it goes stale when either changes.
+
+   So: flex-wrap on the row, and the nav takes its full width (flex-basis auto)
+   into the line-breaking decision, which the spec makes on hypothetical sizes
+   BEFORE any shrinking. When the lockup and the nav do not both fit, the nav
+   moves to a second line, whole, right-aligned under the wordmark, and the bar
+   grows. The lockup keeps min-width: 0, and that is now safe: it can only shrink
+   when it is alone on its line and wider than the line, in which case the
+   product name wraps under the wordmark and there is nothing to its right to
+   print through. The mark is flex: none so it stays a mark rather than a sliver.
+   The nav itself also wraps, right-aligned, for the case where the nav alone is
+   wider than the line (a large font at 320).
+
+   row-gap 0: the links and the lockup are 44px tall with their own air, and a
+   16px row gap made the wrapped bar 128px tall for no reason. The column gap is
+   the 16px it always was.
+
+   The breakpoint ladder below is still here and still worth tuning, but its job
+   changed: it decides what to shed so the row stays on ONE line at the default
+   font on the widths people actually have. It no longer decides whether the
+   header is legible. Measured, not derived, on every claim above: at 375 with a
+   20px root, main overprinted by 11.5px; with this rule the nav is on its own
+   line and the clearance is the whole width. */
+.topbar .wrap {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 0 16px; padding-block: 12px; min-height: 64px;
+}
+.topbar .ph-lockup { text-decoration: none; min-width: 0; min-height: 44px; }  /* tap target */
+.topbar .ph-lockup svg { color: var(--ph-deep); flex: none; }
+.topbar .ph-lockup .ph-wordmark { font-size: 1.375rem; }
+.topbar .ph-lockup:hover .ph-wordmark { color: var(--ph-deep); }
+
+.topnav {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end;
+  gap: 4px; flex: 0 1 auto; min-width: 0; margin-left: auto;
+}
+.navlink {
+  display: inline-flex; align-items: center; min-height: 44px;
+  padding: 0 12px; border-radius: var(--ph-r-md);
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-mute); text-decoration: none; white-space: nowrap;
+}
+.navlink:hover { color: var(--ph-ink); background: var(--ph-paper-deep); }
+.navlink[aria-current="page"] { color: var(--ph-deep); }
+
+.themetoggle {
+  appearance: none; cursor: pointer; background: transparent;
+  border: 1px solid var(--ph-line); border-radius: var(--ph-r-md);
+  color: var(--ph-mute); font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  min-height: 44px; padding: 0 12px; margin-left: 8px; min-width: 72px;
+  white-space: nowrap;
+}
+.themetoggle:hover { border-color: var(--ph-mute); color: var(--ph-ink); }
+
+/* section grid: a sticky numeral rail in the margin, per DESIGN-GUIDE §6 */
+.sec {
+  display: grid;
+  grid-template-columns: var(--pp-rail) minmax(0, 1fr);
+  gap: 0 var(--pp-gap);
+  /* Rhythm tokens, DESIGN-GUIDE 6.1, the same four the company site uses.
+     They step down one notch of the scale below 640; the 640 block also makes
+     them asymmetric there, so the air under a boundary belongs to the section
+     it opens. This section already had one hairline per boundary, which is
+     the rest of that rule. */
+  padding-block: var(--ph-stack);
+  border-top: 1px solid var(--ph-line);
+}
+.sec.first { border-top: 0; }              /* explicit. :first-of-type never
+                                              matched here: the first <section>
+                                              sibling is always the hero. */
+.rail {
+  align-self: start; position: sticky; top: 24px;
+  display: flex; flex-direction: column; gap: 4px; padding-top: 4px;
+}
+.rail .num {
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  letter-spacing: var(--ph-tr-micro); color: var(--ph-brass);
+  font-variant-numeric: tabular-nums;
+}
+.rail .label {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-mute); line-height: 1.4;
+}
+.rail::after {
+  content: ""; display: block; width: 24px; height: 1px;
+  background: var(--ph-line); margin-top: 4px;
+}
+.col { min-width: 0; display: flex; flex-direction: column; gap: 24px; }
+
+.hero { padding-block: var(--ph-stack) var(--ph-block); display: flex; flex-direction: column; gap: var(--ph-pad); }
+.hero.tight { padding-block: var(--ph-block) var(--ph-pad); }
+.hero-top {
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  gap: 24px 48px; align-items: end;
+}
+.hero-top .left, .hero-top .right { display: flex; flex-direction: column; gap: 16px; }
+
+/* ── 3. typography ────────────────────────────────────────────────────── */
+
+.mono, .machine {
+  font-family: var(--ph-mono); font-feature-settings: "tnum" 1;
+  letter-spacing: 0;
+}
+
+/* max-width:none, here and on .signature and .doc-foot, because tokens.css sets
+   `p { max-width: var(--ph-measure) }` and every one of these is a <p> that lays
+   its children out as a full-width row. The measure is for prose. Left on, it
+   clamped a space-between row to 435.6px inside an 854px page and left the rest
+   of the paper blank. Any new full-width row set in a <p> needs this line. */
+.eyebrow {
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  letter-spacing: var(--ph-tr-micro); text-transform: uppercase;
+  color: var(--ph-mute); max-width: none;
+  display: flex; align-items: center; gap: 12px;
+}
+.eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--ph-line); max-width: 72px; }
+.eyebrow.brass { color: var(--ph-brass); }
+.eyebrow.brass::after { background: var(--ph-line); }
+
+h1 { max-width: 16ch; }
+h2 { max-width: 24ch; text-wrap: balance; }
+h3 { max-width: 32ch; }
+
+.lede { font-size: 1.1875rem; line-height: 1.5; color: var(--ph-mute); max-width: var(--ph-measure-lede); }
+.body { color: var(--ph-mute); max-width: var(--ph-measure); }
+.body p + p { margin-top: 16px; }
+.body strong, .body b { color: var(--ph-ink); font-weight: 600; }
+p { text-wrap: pretty; }
+
+/* Human prose, so sans. The mono/sans split is a rule with meaning, not a
+   texture: mono is what a machine owns. A caption is somebody talking. */
+.caption {
+  font-size: var(--ph-t-small); line-height: 1.6;
+  color: var(--ph-mute); max-width: 72ch;
+}
+.pull {
+  font-size: clamp(1.25rem, 2vw, 1.4375rem); line-height: 1.4;
+  color: var(--ph-ink); letter-spacing: -.008em; max-width: 52ch;
+  border-top: 1px solid var(--ph-ink); border-bottom: 1px solid var(--ph-line);
+  padding-block: 16px;
+}
+
+/* ── 4. buttons and links ─────────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  appearance: none; cursor: pointer; text-decoration: none;
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  background: var(--ph-deep); color: var(--ph-paper);
+  border: 1px solid var(--ph-deep); border-radius: var(--ph-r-md);
+  min-height: 44px; padding: 12px 24px; line-height: 1;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+.btn:hover { background: var(--ph-tide); border-color: var(--ph-tide); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:disabled:hover { background: var(--ph-deep); border-color: var(--ph-deep); }
+.btn.ghost { background: transparent; color: var(--ph-deep); border-color: var(--ph-line); }
+.btn.ghost:hover { background: var(--ph-paper-deep); border-color: var(--ph-deep); color: var(--ph-deep); }
+.btn.danger { background: var(--pp-refused); border-color: var(--pp-refused); color: var(--ph-paper); }
+.btn.danger:hover { background: var(--ph-ink); border-color: var(--ph-ink); color: var(--ph-paper); }
+
+.actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+/* An in-page jump lands its target flush against the viewport edge, which reads
+   as a page that has broken rather than as a page that has moved. 24px matches
+   .rail's sticky top, so a section heading and its rail numeral arrive at the
+   same height and the section reads as one thing on landing.
+
+   The topbar on this site is NOT sticky, so this is breathing room rather than
+   clearance for an overlay. If the topbar ever becomes sticky, this number stops
+   being cosmetic and has to grow to its height, or every anchor lands underneath
+   it. */
+[id] { scroll-margin-top: 24px; }
+
+.textlink {
+  display: inline-flex; align-items: center; min-height: 44px;
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-deep); text-decoration: underline;
+  text-decoration-thickness: from-font; text-underline-offset: 3px;
+}
+.textlink:hover { text-decoration-thickness: 2px; }
+
+/* ── 5. surfaces ──────────────────────────────────────────────────────── */
+
+.card {
+  background: var(--ph-card); border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-lg); padding: 32px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.callout {
+  border: 1px solid var(--ph-line); background: var(--ph-shoal-soft);
+  border-radius: var(--ph-r-lg); padding: 24px;
+  display: flex; flex-direction: column; gap: 12px; max-width: 72ch;
+}
+.callout > .t {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-deep);
+}
+.callout p { font-size: var(--ph-t-small); line-height: 1.6; }
+.callout.warn { background: var(--ph-paper-deep); border-color: var(--pp-refused); }
+.callout.warn > .t { color: var(--pp-refused); }
+.callout.quiet { background: var(--ph-card); }
+.callout.quiet > .t { color: var(--ph-mute); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  padding: 4px 8px; border-radius: var(--ph-r-sm); white-space: nowrap;
+  background: var(--ph-paper-deep); color: var(--ph-mute); border: 1px solid var(--ph-line);
+}
+.chip.ok { color: var(--pp-granted); border-color: var(--pp-granted); background: transparent; }
+.chip.no { color: var(--pp-refused); border-color: var(--pp-refused); background: transparent; }
+
+/* The badge is a component, not an eyebrow, so the section 4 carve-out that
+   keeps brass legal on eyebrows and numerals does not reach it. Brass text on
+   --ph-brass-soft measured 3.23:1 at 11px in light mode. The border and the
+   ground carry the brass; the word is ink. */
+.badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-ink); border: 1px solid var(--ph-brass);
+  border-radius: var(--ph-r-pill); padding: 4px 12px; background: var(--ph-brass-soft);
+}
+
+/* a numbered rules list, set as document clauses rather than as feature cards */
+.rules { display: flex; flex-direction: column; border-top: 1px solid var(--ph-ink); }
+.rules li {
+  list-style: none; display: flex; flex-direction: column; gap: 4px;
+  padding-block: 16px; border-bottom: 1px solid var(--ph-line);
+}
+.rules .h {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none; color: var(--ph-ink);
+}
+.rules .p { font-size: var(--ph-t-small); color: var(--ph-mute); line-height: 1.55; max-width: var(--ph-measure); }
+
+.notice { display: flex; flex-direction: column; gap: 8px; max-width: 72ch; }
+.notice .nh {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none; color: var(--pp-granted);
+}
+.notice p { font-size: var(--ph-t-small); line-height: 1.6; }
+
+.errors { display: flex; flex-direction: column; gap: 8px; max-width: 72ch; }
+.errors .eh {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none; color: var(--pp-refused);
+}
+.errors .emsg { font-size: var(--ph-t-small); line-height: 1.6; color: var(--ph-ink); }
+.errors ul { list-style: none; display: flex; flex-direction: column; gap: 4px; padding-left: 12px; }
+.errors li { font-family: var(--ph-sans); font-size: var(--ph-t-micro); color: var(--ph-mute); }
+.errors .fixed { font-size: var(--ph-t-small); color: var(--ph-mute); }
+
+/* ── 6. tables and blocks ─────────────────────────────────────────────── */
+
+.scroll {
+  overflow-x: auto; border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-lg); background: var(--ph-card);
+}
+table { border-collapse: collapse; width: 100%; font-size: var(--ph-t-small); min-width: 520px; }
+thead th {
+  text-align: left; font-family: var(--ph-sans); font-weight: 400;
+  font-size: var(--ph-t-micro); letter-spacing: 0;
+  text-transform: none; color: var(--ph-mute);
+  padding: 12px 16px; border-bottom: 1px solid var(--ph-ink);
+  white-space: nowrap; background: var(--ph-card);
+}
+tbody td { padding: 12px 16px; border-bottom: 1px solid var(--ph-line); vertical-align: top; line-height: 1.5; }
+tbody tr:last-child td { border-bottom: 0; }
+td.capname { font-family: var(--ph-mono); font-size: var(--ph-t-micro); white-space: nowrap; }
+td.dim { color: var(--ph-mute); }
+
+.blockbox {
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro); line-height: 1.7;
+  background: var(--ph-paper-deep); border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-md); padding: 16px;
+  color: var(--ph-ink); overflow-x: auto; white-space: pre;
+}
+.blockbox.tall { max-height: min(480px, calc(100vh - 140px)); overflow-y: auto;
+  white-space: pre-wrap; overflow-wrap: anywhere; }
+.copyrow { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.copyrow .blockbox { width: 100%; }
+
+/* ══ 7. THE PASSPORT DOCUMENT ═════════════════════════════════════════════
+   Five numbered pages, per PASSPORT-DIRECTION: cover, the bearer, the
+   machine-readable zone, entry permissions, declaration. Everything on them is
+   generated from the stored passport. Nothing is decoration.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* The artefact sits in the same two-column grid as the prose that discusses it,
+   so the page has ONE left edge. It used to start 200px to the left of every
+   section below it and be centred in neither. The rail carries the document's
+   own label the way it carries a section number, which makes the artefact the
+   page's section 00 rather than a slab floating above the grid. */
+.doc-sec { padding-block: var(--ph-block) var(--ph-stack); }
+.docwrap { display: flex; flex-direction: column; gap: 12px; }
+
+.doc {
+  background: var(--ph-card);
+  border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-lg);
+  box-shadow: var(--ph-shadow);
+  overflow: clip;                 /* clip, not hidden: no stacking context, so
+                                     the stamps on page 4 can still blend */
+  max-width: 920px;
+}
+/* No :first-child reset here: the cover is always page 1 and sets its own
+   border-top: 0 below, and two rules for one edge is one rule too many. */
+.page { position: relative; padding: 32px; border-top: 1px solid var(--ph-line); }
+
+.page-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; padding-bottom: 12px; margin-bottom: 24px;
+  border-bottom: 1px solid var(--ph-line);
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+}
+/* Each page title is a real <h2>, so a screen reader can navigate the five
+   pages by heading rather than only by region. It has to be talked back down to
+   the folio's size: tokens.css sets h2 at 26px/600, and h2 in this file carries
+   a 24ch measure and text-wrap:balance, none of which belongs on a page label. */
+.page-head .pt {
+  color: var(--ph-ink);
+  font-size: inherit; font-weight: 400; line-height: inherit;
+  letter-spacing: inherit; max-width: none; text-wrap: wrap;
+}
+.page-head .folio { color: var(--ph-mute); white-space: nowrap; }
+
+/* page 1: the cover ---------------------------------------------------- */
+.page.cover {
+  background: var(--pp-cover); color: var(--pp-cover-ink);
+  padding: 48px 32px;
+  display: flex; flex-direction: column; gap: 48px;
+  border-top: 0;
+}
+.cover-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
+.cover-mark { display: flex; align-items: center; gap: 12px; color: var(--pp-cover-ink); }
+.cover-mark svg { height: 40px; width: auto; display: block; }
+.cover-mark .w { font-size: 1.375rem; font-weight: 600; letter-spacing: -.025em; }
+.cover-type {
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  letter-spacing: var(--ph-tr-micro); text-transform: uppercase;
+  color: var(--pp-cover-ink); opacity: .78; text-align: right;
+}
+.cover-title {
+  font-family: var(--ph-sans);
+  font-size: clamp(1.75rem, 1rem + 3vw, 3rem);
+  letter-spacing: -.02em; text-transform: none; line-height: 1.12;
+  color: var(--pp-cover-ink);
+}
+.cover-foot {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 24px; border-top: 1px solid var(--pp-cover-line);
+}
+.cover-foot .lbl {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--pp-cover-ink); opacity: .7;
+}
+.cover-foot h1 {
+  font-size: clamp(1.75rem, 1.1rem + 2.2vw, 2.5rem);
+  color: var(--pp-cover-ink); max-width: 20ch;
+}
+.cover-foot .idr {
+  font-family: var(--ph-mono); font-size: var(--ph-t-small);
+  color: var(--pp-cover-ink); opacity: .78; overflow-wrap: anywhere;
+}
+/* A specimen mark on a real document is applied after the artwork and lies
+   across it. This one used to queue politely in its own row with 48px of air on
+   both sides, which is a badge, not a stamp. It now overprints the cover title.
+
+   The cover stays dark in both themes, so use inverse brass rather than the
+   brown brass intended for paper. The 24px floor preserves the stamp's visual
+   weight. No opacity or blend mode: the ink must remain clear on the cover.
+
+   It is anchored to the title block rather than to the cover, so the overprint
+   keeps the same relationship to the artwork at every width instead of drifting
+   with the cover's height. */
+.cover-titlewrap { position: relative; }
+.specimen {
+  position: absolute;
+  left: 24px;
+  /* Seven tenths of its own height below the title block, so its top edge
+     crosses the last line of the title by about half at every size. The
+     height is 1em of face plus 16px of padding plus 4px of rule; this is
+     geometry read off the element, not a spacing value off the scale, which is
+     why it is written as the sum rather than as -40px. */
+  bottom: calc(-0.7 * (1em + 20px));
+  transform: rotate(-7deg); transform-origin: left center;
+  font-family: var(--ph-mono);
+  font-size: clamp(1.5rem, 1.1rem + 2.2vw, 2.375rem);   /* 24px floor, 38px cap */
+  letter-spacing: var(--pp-tr-title); text-transform: uppercase;
+  line-height: 1;
+  color: var(--ph-brass-inverse);
+  border: 2px solid var(--ph-brass-inverse); border-radius: var(--ph-r-sm);
+  padding: 8px 16px;
+  pointer-events: none;
+}
+
+/* page 2: the bearer --------------------------------------------------- */
+.bearer-grid { display: grid; grid-template-columns: 152px minmax(0, 1fr); gap: 32px; }
+.portrait {
+  border: 1px solid var(--ph-line); border-radius: var(--ph-r-md);
+  background: var(--ph-paper-deep); aspect-ratio: 5 / 7;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 16px; text-align: center; color: var(--ph-deep);
+}
+.portrait svg { height: 48px; width: auto; }
+.portrait .np {
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  letter-spacing: var(--ph-tr-micro); text-transform: uppercase;
+  color: var(--ph-mute); line-height: 1.5;
+}
+.fields { display: flex; flex-direction: column; }
+.fields > div { display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 4px 24px; padding-block: 8px; border-bottom: 1px solid var(--ph-line); }
+.fields > div:last-child { border-bottom: 0; }
+.fields dt {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-mute); padding-top: 4px;
+}
+.fields dd {
+  font-family: var(--ph-mono); font-size: var(--ph-t-small);
+  color: var(--ph-ink); line-height: 1.5; overflow-wrap: anywhere;
+}
+.observations {
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--ph-ink);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.observations .lbl {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none; color: var(--ph-mute);
+}
+.observations p { font-size: var(--ph-t-small); line-height: 1.6; max-width: var(--ph-measure); }
+
+/* page 3: the machine-readable zone ------------------------------------ */
+/* The strip solves its own size so that 44 characters fit the box it is given.
+   It used to render 355px inside a 300px box and scroll sideways at 390px,
+   which is compliant (the body never scrolls) and useless: the best detail in
+   the design was unreadable on the device where a shared link is actually
+   opened.
+
+   The arithmetic, measured rather than assumed: DM Mono advances 0.600em per
+   character, so at 11px with .1em tracking each character takes 7.7px, which
+   the browser confirms. One line is therefore 44 x (0.6 + tracking) x font-size
+   wide, and inverting that gives the largest size that fits. 2px comes off the
+   container first so sub-pixel rounding cannot tip it over. --ph-t-small is the
+   ceiling, so nothing above 640px changes.
+
+   The tracking itself is a flourish, not the format: a real MRZ is fixed pitch
+   with no letterspacing at all, so dropping it on a phone is faithful rather
+   than a compromise. Below about 355px the 8px floor wins and the strip goes
+   back to scrolling inside itself, which is where overflow-x earns its keep.
+   Measured: 10.4px at 390, 15px at 640 and above, never overflowing at either,
+   and the body never scrolls at any width. */
+.mrz {
+  container-type: inline-size;
+  background: var(--ph-paper-deep); border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-md); padding: 16px;
+  overflow-x: auto;
+}
+.mrz span {
+  display: block; white-space: pre; font-family: var(--ph-mono);
+  line-height: 2; color: var(--ph-ink);
+  letter-spacing: calc(var(--pp-tr-mrz) * 1em);
+  font-size: clamp(8px,
+                   calc((100cqi - 2px) / (44 * (0.6 + var(--pp-tr-mrz)))),
+                   var(--ph-t-small));
+}
+.decode { margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(232px, 1fr)); gap: 0 32px; }
+.decode > div {
+  display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 4px 16px;
+  padding-block: 8px; border-bottom: 1px solid var(--ph-line); align-items: baseline;
+}
+.decode .pos {
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  color: var(--ph-mute); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.decode .v { font-family: var(--ph-mono); font-size: var(--ph-t-micro); color: var(--ph-ink); overflow-wrap: anywhere; }
+.decode .k { grid-column: 2; font-size: var(--ph-t-micro); color: var(--ph-mute); line-height: 1.5; }
+
+/* page 4: entry permissions -------------------------------------------- */
+.permits { display: flex; flex-direction: column; }
+.permit {
+  display: grid; grid-template-columns: minmax(0, 1fr) 176px;
+  gap: 16px 24px; align-items: center;
+  padding-block: 24px; border-bottom: 1px solid var(--ph-line);
+}
+.permit:last-child { border-bottom: 0; }
+.permit .cap {
+  font-family: var(--ph-mono); font-size: var(--ph-t-small);
+  color: var(--ph-ink); margin-bottom: 4px;
+}
+.permit .why { font-size: var(--ph-t-small); line-height: 1.55; color: var(--ph-ink); }
+.permit .ifskip { font-size: var(--ph-t-small); line-height: 1.55; color: var(--ph-mute); margin-top: 4px; }
+.permit .ref {
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  color: var(--ph-mute); margin-left: 8px;
+}
+
+/* The stamp. mix-blend-mode needs an unbroken path to the page background: no
+   ancestor between here and the root may create a stacking context, so nothing
+   above sets z-index, isolation, opacity or a filter. A z-index:1 rule is what
+   made this inert before. The element's own transform is fine, because an
+   element blends with the backdrop of its PARENT stacking context. */
+.stamp {
+  justify-self: end;
+  display: inline-flex; flex-direction: column; gap: 4px;
+  border: 2px solid currentColor; border-radius: var(--ph-r-sm);
+  box-shadow: inset 0 0 0 1px currentColor;
+  padding: 8px 12px; text-align: left;
+  font-family: var(--ph-mono); text-transform: uppercase;
+  color: var(--pp-granted);
+  mix-blend-mode: var(--pp-blend);
+  transform: rotate(var(--tilt, -3deg));
+}
+.stamp .s1 { font-size: var(--ph-t-small); letter-spacing: var(--pp-tr-face); line-height: 1.2; white-space: nowrap; }
+/* .92, not .85. The sub-line is meant to be the quieter half of the stamp, but
+   at .85 the granted colour composited to 4.31:1 on the card, under the 4.5
+   floor for 11px text. .92 clears it and the hierarchy still reads. */
+.stamp .s2 { font-size: var(--ph-t-micro); letter-spacing: var(--ph-tr-micro); opacity: .92; white-space: nowrap; }
+.stamp.no { color: var(--pp-refused); }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* The one animation in the build: a stamp hits paper and stops dead.
+     Guarded on no-preference rather than cancelled under reduce, so there is
+     nothing to cancel: tokens.css shortens durations but not delays, and `both`
+     would otherwise hold the from-state through the delay. A reduce block here
+     could never co-occur with this one and was dead code. */
+  .stamp { animation: land .32s cubic-bezier(.16, 1, .3, 1) both; }
+  @keyframes land {
+    from { opacity: 0; transform: rotate(var(--tilt, -3deg)) scale(1.6); }
+    to   { opacity: 1; transform: rotate(var(--tilt, -3deg)) scale(1); }
+  }
+  .permit:nth-child(1) .stamp { animation-delay: .12s; }
+  .permit:nth-child(2) .stamp { animation-delay: .20s; }
+  .permit:nth-child(3) .stamp { animation-delay: .28s; }
+  .permit:nth-child(4) .stamp { animation-delay: .36s; }
+  .permit:nth-child(5) .stamp { animation-delay: .44s; }
+  .permit:nth-child(n+6) .stamp { animation-delay: .50s; }
+}
+/* The rule runs the width of the page and the prose does not, the same way the
+   observations block above it works. Before this the two sat 24px apart with
+   rules of different lengths, which reads as a mistake rather than a measure. */
+.permit-note {
+  margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--ph-line);
+  font-size: var(--ph-t-small); line-height: 1.6;
+  color: var(--ph-mute); max-width: none;
+}
+.permit-note > .m { display: block; max-width: 72ch; }
+/* Suppress the second of two rules. When permit-note follows an element that
+   already closes with a hairline, its own top rule made the double-hairline
+   artefact at 24px separation. Spacing alone divides them. */
+.decode + .permit-note,
+.scroll + .permit-note,
+table + .permit-note { border-top: 0; padding-top: 0; margin-top: 32px; }
+
+/* page 5: the declaration ---------------------------------------------- */
+.page.declaration { background: var(--ph-paper-deep); }
+.page.declaration thead th { background: var(--ph-paper-deep); }
+.page.declaration .scroll { background: var(--ph-paper-deep); }
+.nothing {
+  border: 1px dashed var(--ph-line); border-radius: var(--ph-r-md);
+  padding: 24px; display: flex; flex-direction: column; gap: 8px;
+}
+.nothing .h {
+  font-family: var(--ph-sans); font-size: var(--ph-t-h3);
+  letter-spacing: 0; text-transform: none; color: var(--ph-ink);
+}
+.nothing p {
+  font-size: var(--ph-t-small); line-height: 1.6; color: var(--ph-mute); max-width: 64ch;
+  text-wrap: wrap;   /* not the inherited `pretty`: inside a narrow well it rags the tail */
+}
+/* max-width:none, per the note on .eyebrow. This is the closing line of the
+   artefact and it used to stop 418px short of the edge of its own page. */
+.signature {
+  margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--ph-ink);
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; max-width: none;
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  letter-spacing: var(--ph-tr-micro); text-transform: uppercase; color: var(--ph-ink);
+}
+.signature .r { color: var(--ph-mute); }
+
+.doc-foot {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; max-width: none;
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  letter-spacing: var(--pp-tr-doc); color: var(--ph-mute);
+}
+
+/* ── 8. platform picker ───────────────────────────────────────────────── */
+/* Real tabs: roving tabindex, arrow keys, aria-controls, one panel. No
+   overflow:hidden anywhere in the chain, because it clipped the focus ring on
+   the first tab. */
+
+.picker { display: flex; flex-direction: column; gap: 0; }
+.tablist {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  padding: 4px 4px 0;                  /* room for the focus ring */
+  border-bottom: 1px solid var(--ph-line);
+}
+.tab {
+  appearance: none; background: transparent; cursor: pointer;
+  border: 1px solid transparent; border-bottom: 0;
+  border-radius: var(--ph-r-md) var(--ph-r-md) 0 0;
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-mute); min-height: 44px; padding: 0 16px;
+  margin-bottom: -1px;   /* the selected tab's bottom edge sits on the panel's top border, not a spacing value */
+}
+.tab:hover { color: var(--ph-ink); }
+.tab[aria-selected="true"] {
+  color: var(--ph-deep); background: var(--ph-card);
+  border-color: var(--ph-line); border-bottom: 1px solid var(--ph-card);
+}
+
+@media (max-width: 640px) {
+  /* Four labels never fit one phone row. A 2x2 grid keeps the set together, but a
+     folder tab only reads if its open edge meets the panel, and on the top row of a
+     grid it meets the row below. So the folder metaphor is dropped here: a segmented
+     control, with the selected cell carrying the panel's own ground so the two are
+     tied by colour instead of by adjacency. Placed AFTER the desktop rule because
+     both are one class plus one attribute and the later one wins. */
+  .tablist {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0; padding: 0; border: 1px solid var(--ph-line);
+    border-radius: var(--ph-r-md) var(--ph-r-md) 0 0; overflow: hidden;
+  }
+  .tab {
+    border: 0; border-radius: 0; padding: 0 12px;
+    border-right: 1px solid var(--ph-line);
+    border-bottom: 1px solid var(--ph-line);
+  }
+  .tab:nth-child(2n) { border-right: 0; }
+  .tab:nth-last-child(-n+2) { border-bottom: 0; }
+  .tab[aria-selected="true"] {
+    background: var(--ph-card); color: var(--ph-deep);
+    border-bottom-color: var(--ph-line);
+  }
+  .tabpanel { border-top: 0; }
+
+  /* The copy button is the primary action on the artefact a stranger opens from
+     a link. As natural-width inline-flex its right edge wandered with the label:
+     52px short of the column at 430, and at 360 the label wrapped and split
+     "(54 KB)" across two lines. Full width, so the edge is the column's edge. */
+  .tabpanel .btn { width: 100%; }
+}
+
+.tabpanel {
+  border: 1px solid var(--ph-line); border-top: 0;
+  border-radius: 0 0 var(--ph-r-lg) var(--ph-r-lg);
+  background: var(--ph-card); padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.tabpanel .plat {
+  font-size: var(--ph-t-small); line-height: 1.6;
+  color: var(--ph-mute); max-width: 72ch;
+}
+.tabpanel .next { font-size: var(--ph-t-small); color: var(--ph-mute); max-width: 64ch; }
+
+/* ── 8b. doors: a card that IS a link ─────────────────────────────────── */
+
+/* Used by the router at / and by nothing else. An earlier version of this
+   comment claimed the fork on /create used it too; that fork is `.paths .card`
+   and always was, which a critic established by measuring the element at
+   runtime rather than by reading this sentence. A comment asserting a second
+   caller is the cheapest kind of false claim to write and the most expensive
+   to disprove, because the next person deletes the wrong rule.
+
+   The whole card is one
+   <a>, not a card with a link in it, because a card with a link in it gives a
+   reader two targets of very different sizes for one destination and puts the
+   small one at the bottom. One anchor also means one tab stop and one focus
+   ring, and the ring is the global :focus-visible rule rather than a local
+   copy of it.
+
+   THE GRID IS repeat(auto-fit, minmax(256px, 1fr)), the same as .paths and
+   .decode, so two doors sit side by side above about 570px inside .board and
+   stack below it. That stacking point is why order is a design decision on
+   this page and not a detail: below it, the first card is the default.
+
+   Nothing here sets a height. Two doors with different amounts of prose end at
+   different depths and that is correct; equalising them would push the second
+   headline further down the phone screen to buy a straight bottom edge nobody
+   is looking at. What co-visibility costs is measured on the real page at
+   390x844, not reasoned about here. */
+.doors { display: grid; grid-template-columns: repeat(auto-fit, minmax(256px, 1fr)); gap: 12px; }
+.door {
+  display: flex; flex-direction: column; gap: 8px; height: 100%;
+  background: var(--ph-card); border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-lg); padding: 24px;
+  color: var(--ph-ink); text-decoration: none;
+  transition: border-color .14s ease, background .14s ease;
+}
+.door:hover { border-color: var(--ph-deep); background: var(--ph-shoal-soft); }
+.door .k {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-brass);
+}
+.door .t { font-size: var(--ph-t-h3); font-weight: 600; letter-spacing: -.014em; }
+.door .d { font-size: var(--ph-t-small); color: var(--ph-mute); line-height: 1.5; }
+/* The arrow is the second half of the hover signal and it is aria-hidden: the
+   anchor's own text already says where it goes. margin-top:auto pins it to the
+   bottom of whichever card is taller, so the two arrows line up even though the
+   prose above them does not. */
+.door .go {
+  display: inline-block; margin-top: auto; padding-top: 4px;
+  color: var(--ph-deep); line-height: 1;
+  transition: transform .14s ease;
+}
+.door:hover .go { transform: translateX(4px); }
+/* Later in source order at equal specificity, which is the only reason this
+   wins: a media query adds no specificity of its own. The same override written
+   in the tidy block at the top of this file would parse, validate and never
+   apply. See record/findings/a-media-query-adds-no-specificity.md. */
+@media (prefers-reduced-motion: reduce) {
+  .door, .door .go { transition: none; }
+  .door:hover .go { transform: none; }
+}
+/* THE ARROW COMES OUT ON A PHONE, and it is not a tidying. Below the stacking
+   point the doors are one column, there is no hover on touch, and the arrow's
+   entire job is the second half of a hover signal. Measured at 390x844: it cost
+   the second door 33px including its gap, which was the difference between that
+   door ending at 878 in an 844 viewport with its own arrow clipped in half, and
+   ending inside the first screen. A decoration that only works with a pointer,
+   costing a third of the overflow on the viewport where it cannot work, is the
+   wrong trade in one direction only. */
+@media (max-width: 640px) {
+  .door .go { display: none; }
+}
+
+/* ── 9. forms ─────────────────────────────────────────────────────────── */
+
+.paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(256px, 1fr)); gap: 12px; }
+.path-card { position: relative; }
+.path-card input { position: absolute; opacity: 0; width: 0; height: 0; }
+.path-card label {
+  display: flex; flex-direction: column; gap: 8px; cursor: pointer; height: 100%;
+  background: var(--ph-card); border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-lg); padding: 24px;
+  transition: border-color .14s ease, background .14s ease;
+}
+.path-card label:hover { border-color: var(--ph-mute); }
+.path-card input:checked + label { border-color: var(--ph-deep); background: var(--ph-shoal-soft); }
+.path-card input:focus-visible + label { outline: 3px solid var(--ph-deep); outline-offset: 4px; }
+.path-card .t { font-size: var(--ph-t-h3); font-weight: 600; letter-spacing: -.014em; }
+.path-card .d { font-size: var(--ph-t-small); color: var(--ph-mute); line-height: 1.5; }
+
+.drop {
+  border: 1px dashed var(--ph-line); border-radius: var(--ph-r-lg);
+  background: var(--ph-card); padding: 24px;
+  display: flex; flex-direction: column; gap: 12px; align-items: flex-start;
+  transition: border-color .14s ease, background .14s ease;
+}
+.drop.over { border-color: var(--ph-deep); background: var(--ph-shoal-soft); }
+.drop .hint { font-size: var(--ph-t-small); color: var(--ph-mute); }
+.drop .picked { font-family: var(--ph-mono); font-size: var(--ph-t-micro); color: var(--pp-granted); }
+/* width: 100%, NOT max-width. A native file input has an intrinsic width that
+   grows with the root font (the button, its padding and "No file chosen"), and a
+   percentage max-width is cyclic in min-content sizing, so it did nothing for
+   the drop zone's intrinsic size: at a 24px root the input wanted 343px in a
+   345px zone and the page's scrollWidth ran 13px past a 390 viewport, 83px past
+   320 (ROW-166; invisible in Chrome because body clips overflow-x, a rubber
+   band elsewhere). A definite width resolves against the zone and the input
+   shrinks to it, the button keeps the reader's font size, and nothing else on
+   the page moves: measured at 320 to 414 by 16, 20 and 24px root, zero
+   overflow on every cell, and pixel-identical at 1280. The alternative, pinning
+   the button's font at 11px with !important, would have overridden the one
+   setting a large-font reader chose. */
+.drop input[type="file"] { font-family: var(--ph-mono); font-size: var(--ph-t-micro); color: var(--ph-mute); width: 100%; min-height: 44px; }
+.drop.disabled { opacity: .45; }
+
+textarea.paste, input.field, select.field {
+  width: 100%; font-family: var(--ph-mono); font-size: var(--ph-t-small);
+  line-height: 1.6; color: var(--ph-ink); background: var(--ph-card);
+  border: 1px solid var(--ph-line); border-radius: var(--ph-r-md); padding: 12px;
+}
+textarea.paste { min-height: 176px; resize: vertical; }
+textarea.paste:disabled { opacity: .45; }
+/* The one <select> in the app, on /upload and /manage. appearance is left alone
+   on purpose: a custom arrow drawn here would be one more thing to keep in step
+   with two themes and with every platform's own control, and the native one is
+   already the right size and the right colour in both. 44px is the tap target,
+   not a look. */
+select.field { min-height: 44px; cursor: pointer; max-width: 40ch; }
+
+/* ── the vote control ────────────────────────────────────────────────────
+   HERE AND NOT IN gallery.css, because it renders on two surfaces: a gallery
+   card and a listed passport page. The passport page loads base.css and
+   recipient.css and never gallery.css, so a rule there would style one of the
+   two and leave the other bare.
+
+   position: relative and z-index lift it above the card-wide ::after that makes
+   a gallery card clickable; without them the pseudo-element sits on top and the
+   buttons cannot be pressed. On a passport page there is no such overlay and
+   both are inert. */
+.vote { display: flex; flex-wrap: wrap; gap: 4px; max-width: 100%; position: relative; z-index: 1; }
+.vote-status {
+  flex-basis: 100%; margin: 0;
+  font-size: var(--ph-t-small); line-height: 1.4; color: var(--ph-ink);
+}
+.vote button {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 36px; padding: 4px 10px;
+  font: inherit; font-size: var(--ph-t-small); line-height: 1;
+  color: var(--ph-mute); background: var(--ph-paper-deep);
+  border: 1px solid var(--ph-line); border-radius: var(--ph-r-pill); cursor: pointer;
+}
+.vote button:hover { color: var(--ph-ink); border-color: var(--ph-mute); }
+/* aria-pressed is set by assets/gallery.js from the POST response and never on a
+   plain page load, because the vote cookie is HttpOnly and no script can read
+   it. So a pressed button on this page means "you just voted", not "you have
+   voted before", and that is the honest reading of what we know. */
+.vote button[aria-pressed="true"] {
+  color: var(--ph-paper); background: var(--ph-deep); border-color: var(--ph-deep);
+}
+.vote button[value="down"][aria-pressed="true"] {
+  background: var(--pp-refused); border-color: var(--pp-refused);
+}
+/* The border accompanies the visible status text; colour alone does not
+   communicate a failed or uncertain request. */
+.vote-failed button { border-color: var(--pp-refused); }
+/* 36px is comfortably past WCAG 2.2's 24px minimum and reads right beside the
+   card's own text at desktop widths. On a phone the vote control is the main
+   thing on a card that is not a link, so it takes the 44px the topbar's own
+   controls take. Measured at 390: 53x36 before this. */
+@media (max-width: 640px) {
+  .vote button { min-height: 44px; padding: 4px 14px; }
+}
+
+/* The listed line on a passport page: the category and date on the left, the
+   vote control on the right, sharing one rule under the install button. */
+.galleryline {
+  display: flex; flex-wrap: wrap; gap: 12px 24px;
+  align-items: center; justify-content: space-between;
+  padding: 12px 0; border-top: 1px solid var(--ph-line);
+}
+.galleryline .glabel { font-size: var(--ph-t-small); color: var(--ph-mute); }
+.galleryline .glabel .textlink { margin-left: 8px; }
+
+/* The gallery consent block: a checkbox, its consent paragraph, and the category
+   select that appears under it. Grouped so the select reads as belonging to the
+   box above rather than as the next question on the page. */
+.listbox {
+  display: flex; flex-direction: column; gap: 16px;
+  border: 1px solid var(--ph-line); border-radius: var(--ph-r-md);
+  background: var(--ph-card); padding: 20px; max-width: var(--ph-measure);
+}
+.listbox .formrow { max-width: none; }
+.formrow { display: flex; flex-direction: column; gap: 8px; max-width: 60ch; }
+.formrow > label {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none; color: var(--ph-mute);
+}
+.formrow .help { font-size: var(--ph-t-small); color: var(--ph-mute); }
+/* The blank-category refusal under the gallery select: the refusal colour on
+   the text and a matching border on the select it is about, and nothing else on
+   the page moves. */
+.formrow .fielderr { font-size: var(--ph-t-small); color: var(--pp-refused); margin: 0; }
+.formrow:has(.fielderr:not([hidden])) select.field { border-color: var(--pp-refused); }
+
+.step { border-top: 1px solid var(--ph-line); padding-block: 48px; }
+.step.first { border-top: 0; padding-top: 24px; }
+.step-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.step-head .k {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none; color: var(--ph-brass);
+}
+.step-body { display: flex; flex-direction: column; gap: 16px; }
+/* The form steps used to carry style="max-width:840px" inline, three times, on
+   a number that is off every scale in the guide. 72ch is the measure the
+   callouts on the same page already use, so the form column and the warnings
+   above it now share one right edge instead of missing it by 92px. */
+.step-body.narrow { max-width: 72ch; }
+.pathpanel { border-top: 1px solid var(--ph-line); padding-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+.awaiting {
+  border: 1px dashed var(--ph-line); border-radius: var(--ph-r-lg); padding: 24px;
+  font-size: var(--ph-t-small); line-height: 1.6;
+  color: var(--ph-mute); background: var(--ph-card); max-width: 72ch;
+}
+/* It held one line of text until /create put two paragraphs in it, and with no
+   rule here they butted together and the second read as the tail of the first.
+   Seen in a screenshot at 390, not inferred: "It is not released yet" is the
+   sentence that most needs to be its own paragraph and was the one losing it. */
+.awaiting p + p { margin-top: 12px; }
+/* A well inside a card inside a stacked column is three nested paddings deep on
+   a phone, and this is the innermost. 24px each side buys nothing at 390 and
+   costs the card height, which is the budget the fork's whole design is against:
+   both cards have to be comparable without scrolling between them. */
+/* ── the prompt disclosures on /create ────────────────────────────────── */
+
+/* A <details> and not a click handler, so it is keyboard-operable and a screen
+   reader announces expanded/collapsed for free. The marker is removed in both
+   the ways browsers want it removed and the summary is given the affordance the
+   marker was carrying: a caret drawn in text, rotated when open.
+
+   THE NOTE AT base.css:151 IS ABOUT A DIFFERENT CASE AND DOES NOT APPLY. The
+   topbar stopped being a <details> because Chrome gives a CLOSED details zero
+   intrinsic size, which broke a nav whose panel had to be visible at wide
+   widths. Nothing here is styled visible while closed: closed means closed, and
+   that is the whole point of the element on this page. */
+.promptbox {
+  border: 1px solid var(--ph-line); border-radius: var(--ph-r-lg);
+  background: var(--ph-card);
+}
+.promptbox > summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 18px; min-height: 44px;          /* tap target */
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--ph-deep);
+}
+.promptbox > summary::-webkit-details-marker { display: none; }
+.promptbox > summary::marker { content: ""; }
+.promptbox > summary::before {
+  content: "\203A"; font-family: var(--ph-sans); font-size: 1.125rem; line-height: 1;
+  transition: transform .14s ease;
+}
+.promptbox[open] > summary::before { transform: rotate(90deg); }
+.promptbox > summary:hover { background: var(--ph-paper-deep); border-radius: var(--ph-r-lg); }
+.promptbody {
+  padding: 0 18px 18px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+/* The block is long and the copy button is under it, so the button is out of
+   reach at the moment the reader wants it. max-height on .blockbox.tall keeps
+   the scroll INSIDE the block and the button directly beneath, always.
+
+   THE CAP WAS A FLAT 320px UNTIL 2026-09-01 AND IS NOW min(480px, 100vh - 140px).
+   Two changes, and the second exists because the first was measured rather than
+   reasoned about.
+
+   WHY IT GREW. Under Reading A the block stopped being a collapsed <details>
+   inside a fork and became the body of section 02. Its own first line reads "I
+   can read all of it, and so can you, so do not run anything that is not written
+   here", and 320px is a 15% window onto 2032px of content, which undercuts the
+   sentence the block exists to make. The reason above argues for A cap, never for
+   that number.
+
+   WHY IT IS NOT A FLAT 480. The constraint is the button, so the number that
+   matters is not the block's height but the distance from the block's top to the
+   button's bottom, which is the block plus 68px of gap and control. Measured, on
+   the served page:
+
+     viewport     block   top-to-button   spare
+     1440 x 900     480       548          352
+      390 x 664     480       548          116
+      375 x 553     413       481           72     <- with the flat 480 this was 5
+
+   375x553 is an iPhone SE, and a flat 480 cleared it by five pixels. That is not
+   a pass, it is a coincidence: one wrapped button label or one font metric and
+   the control the cap exists to protect goes under the fold. The 140px reserve is
+   the 68px the button actually occupies plus room for the block not to fill the
+   whole screen, so the cap is 480 wherever there is space and shrinks only where
+   there is not. Condition set by HAL, who asked for the short viewport to be
+   verified before the number shipped; it was, and it failed. */
+.promptbody .blockbox { width: 100%; }
+@media (prefers-reduced-motion: reduce) { .promptbox > summary::before { transition: none; } }
+
+@media (max-width: 640px) {
+  .awaiting { padding: 16px; }
+  .promptbox > summary { padding: 12px 14px; }
+  .promptbody { padding: 0 14px 14px; }
+  /* The fork's cards specifically, not .card everywhere: at 390 they are a
+     stacked column and 32px of side padding is 64px of the 390 spent on nothing
+     while the card's height is the scarce thing. */
+  .paths > .card { padding: 20px; }
+}
+/* ── the changelog's entries ──────────────────────────────────────────── */
+
+/* NOT .rules, which was the first attempt and was wrong twice over. That pattern
+   was designed on about.html for a numbered clause label, "01 · Secrets never
+   travel", and its .h is micro uppercase mono. Put an 8-to-11 word sentence
+   through it and the entry TITLE renders smaller than its own body: the eye
+   goes to the body first and the title reads as an eyebrow. A critic saw it in
+   a screenshot I had already looked at without registering it.
+
+   And the titles are real headings here. A changelog entry is a titled unit of
+   prose, which is what a heading is for, and heading navigation is how a screen
+   reader traverses a long page. With .rules the whole page offered three
+   landmarks and not one of them was an entry. The router's doors were given
+   <h2>s the same day for the same reason. */
+.log { list-style: none; display: flex; flex-direction: column; border-top: 1px solid var(--ph-ink); }
+.log > li {
+  border-bottom: 1px solid var(--ph-line); padding-block: 20px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.log > li:last-child { border-bottom: 0; }
+.log h3 { font-size: var(--ph-t-h3); font-weight: 600; letter-spacing: -.014em; }
+.log p { font-size: var(--ph-t-small); line-height: 1.6; color: var(--ph-mute); max-width: var(--ph-measure); }
+.log p + p { margin-top: 8px; }
+.log b, .log strong { color: var(--ph-ink); font-weight: 600; }
+
+ol.steps { padding-left: 0; list-style: none; counter-reset: st; display: flex; flex-direction: column; gap: 12px; }
+ol.steps li {
+  counter-increment: st; display: grid; grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px; font-size: var(--ph-t-small); color: var(--ph-mute); line-height: 1.55; max-width: var(--ph-measure);
+}
+ol.steps li::before {
+  content: counter(st, decimal-leading-zero);
+  font-family: var(--ph-mono); font-size: var(--ph-t-micro);
+  color: var(--ph-brass); padding-top: 4px;
+}
+
+/* A URL written in a stranger's passport prose. It is shown, not linked: see
+   the note on inline() in lib/_render.mjs. Monospaced and dimmed so it reads as
+   a quoted address rather than as something that failed to become a link. */
+.rawlink {
+  font-family: var(--ph-sans); font-size: 0.9em; color: var(--ph-mute);
+  overflow-wrap: anywhere;
+}
+
+/* ── 9b. after publishing ─────────────────────────────────────────────────
+   Three components that only exist once a passport is live: the stop shown to
+   somebody publishing a passport nobody reviewed, the send box, and the status
+   panel behind a delete token. They share the form vocabulary above rather than
+   inventing a second one. */
+
+/* The owner-review stop. Not a callout: a callout is read past, and this one
+   has to be answered. It takes the full measure, carries the refused colour on
+   its left edge, and its button stays disabled until the box is ticked. */
+/* A bounded warning panel, not an accent rail. A 3px coloured border on one side
+   of a card is the most recognisable tell of a generated UI, and the sibling
+   site already settled on a different device for emphasis, so a rail here would
+   also make the two disagree. Carrying the refusal colour all the way round on a
+   tinted ground reads as something you are inside of, which is what a stop that
+   has to be answered should feel like. */
+.gate {
+  display: flex; flex-direction: column; gap: 12px; max-width: 72ch;
+  background: color-mix(in srgb, var(--pp-refused) 7%, var(--ph-card));
+  border: 1px solid color-mix(in srgb, var(--pp-refused) 45%, var(--ph-line));
+  border-radius: var(--ph-r-md); padding: 20px;
+}
+.gate .gh {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none;
+  color: var(--pp-refused);
+}
+.gate p { font-size: var(--ph-t-small); line-height: 1.6; max-width: var(--ph-measure); }
+.gate .actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-top: 4px; }
+
+.checkrow {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px;
+  align-items: start; font-size: var(--ph-t-small); line-height: 1.55;
+  max-width: var(--ph-measure); cursor: pointer;
+}
+.checkrow input[type="checkbox"] {
+  width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--ph-deep); cursor: pointer;
+}
+.checkrow span { color: var(--ph-ink); }
+.checkrow .sub { display: block; color: var(--ph-mute); margin-top: 4px; }
+
+/* The send box. Deliberately quiet: the link is the product, the email is a
+   convenience, and a loud form here would suggest the link needs it. */
+.sendbox { display: flex; flex-direction: column; gap: 16px; max-width: 60ch; }
+.sendbox .sh {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none; color: var(--ph-mute);
+}
+.sendbox[hidden] { display: none; }
+.sendbox .sent {
+  border: 1px solid var(--pp-granted); border-radius: var(--ph-r-md);
+  padding: 14px 16px; font-size: var(--ph-t-small); line-height: 1.6; color: var(--ph-ink);
+}
+
+/* The status panel. Numbers on the left, meaning on the right, one row each,
+   the same shape as the passport page's bearer grid so the two read as one
+   document rather than two screens. */
+.statgrid {
+  /* 112px, not 150: at 150 the three stats break to two columns on a phone and
+     leave one cell empty, which reads as a missing number rather than as a
+     layout. At 112 they stay on one row and the labels wrap instead. */
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  gap: 1px; background: var(--ph-line); border: 1px solid var(--ph-line);
+  border-radius: var(--ph-r-md); overflow: hidden; max-width: 72ch;
+}
+.stat { background: var(--ph-card); padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.stat .n { font-size: 1.5rem; line-height: 1.1; letter-spacing: var(--ph-tr-head); color: var(--ph-ink); }
+.stat .n.warn { color: var(--pp-refused); }
+.stat .l {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: 0; text-transform: none; color: var(--ph-mute);
+}
+
+/* How much of the passport's life is left, drawn rather than counted, because
+   "nine days" and "nine of thirty" are different facts. */
+.meter { display: flex; flex-direction: column; gap: 8px; max-width: 72ch; }
+.meter .track {
+  height: 6px; border-radius: var(--ph-r-pill);
+  background: var(--ph-paper-deep); overflow: hidden;
+}
+.meter .fill { height: 100%; background: var(--ph-deep); border-radius: var(--ph-r-pill); }
+.meter .fill.low { background: var(--pp-refused); }
+.meter .cap { font-size: var(--ph-t-small); color: var(--ph-mute); }
+
+/* ── 10. footer and legal ─────────────────────────────────────────────── */
+
+.foot {
+  margin-top: 24px; border-top: 1px solid var(--ph-ink);
+  padding-block: 32px 72px;
+  display: grid; grid-template-columns: var(--pp-rail) minmax(0, 1fr);
+  gap: 24px var(--pp-gap);
+}
+.foot .fmark { display: flex; flex-direction: column; gap: 12px; }
+.foot .fmark .ph-lockup { min-height: 44px; text-decoration: none; }
+.foot .fmark .ph-lockup svg { color: var(--ph-deep); }
+.foot .fbody { display: flex; flex-direction: column; gap: 16px; }
+.foot p { font-size: var(--ph-t-small); color: var(--ph-mute); max-width: var(--ph-measure); }
+.foot .flinks { display: flex; gap: 16px; flex-wrap: wrap; }
+.foot .flinks a {
+  display: inline-flex; align-items: center; min-height: 44px;
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: var(--pp-tr-doc); color: var(--ph-mute); text-decoration: none;
+}
+.foot .flinks a:hover { color: var(--ph-deep); text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 640px) {
+  /* Six mono links wrapping with only whitespace between them read as one
+     run-on sentence and are hard to hit. One per row, each its own target. */
+  .foot .flinks { display: flex; flex-direction: column; gap: 0; }
+  .foot .flinks a { justify-content: flex-start; }
+}
+.foot .meta {
+  font-family: var(--ph-sans); font-size: var(--ph-t-micro);
+  letter-spacing: var(--pp-tr-doc); color: var(--ph-mute); line-height: 1.8;
+}
+
+.legal { display: flex; flex-direction: column; gap: 32px; max-width: 70ch; }
+.legal h2 { font-size: var(--ph-t-h2); max-width: none; }
+.legal h3 { font-size: var(--ph-t-h3); }
+.legal p { font-size: var(--ph-t-body); color: var(--ph-mute); }
+.legal p + p { margin-top: 12px; }
+.legal ul { padding-left: 16px; display: flex; flex-direction: column; gap: 8px; }
+.legal li { font-size: var(--ph-t-body); color: var(--ph-mute); }
+.legal li b, .legal p b { color: var(--ph-ink); font-weight: 600; }
+.legal .block { display: flex; flex-direction: column; gap: 12px; }
+
+/* An unfilled placeholder. Deliberately inert: never a mailto, never a link.
+   A live mailto to {{CONTACT_EMAIL}} shipped on every route before this.
+
+   The text is ink, not brass. This sits inline inside a 15px paragraph on the
+   privacy and imprint pages, and brass on --ph-brass-soft measured 3.23:1 there
+   in light mode. DESIGN-GUIDE section 4: "If you are setting a paragraph in
+   brass, stop." The brass is still doing the marking, in the border and the
+   ground, where it is a graphic rather than a word. */
+.slot {
+  font-family: var(--ph-sans); font-size: var(--ph-t-small);
+  color: var(--ph-ink); background: var(--ph-brass-soft);
+  border: 1px solid var(--ph-brass); border-radius: var(--ph-r-sm);
+  padding: 4px 8px; overflow-wrap: anywhere;
+}
+
+/* ── 11. responsive ───────────────────────────────────────────────────────
+   Descending, and it stays descending. Two of these blocks used to sit out of
+   order (430 before 640), which collides with nothing today and will bite the
+   next person who adds a declaration to both.
+   1000 · 900 · 760 · 700 · 640 · 460 · 430
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1000px) {
+  .hero-top { grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+}
+
+@media (max-width: 900px) {
+  :root { --pp-rail: 0px; --pp-gap: 0px; }
+  .sec, .foot { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; flex-direction: row; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .rail::after { display: none; }
+  .bearer-grid { grid-template-columns: 120px minmax(0, 1fr); gap: 24px; }
+}
+
+@media (max-width: 760px) {
+  .permit { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .stamp { justify-self: start; }
+}
+
+/* The nav sheds from the right. Everything dropped here is in the footer. */
+@media (max-width: 700px) {
+  .navlink.drop-md { display: none; }
+  .themetoggle { margin-left: 4px; }
+}
+
+/* THE APP'S LADDER, SCOPED TO THE APP. Two of the breakpoints in this file are
+   arithmetic about the app's own topbar: four links, the toggle and the full
+   lockup, at a 16px root. base.css is copied verbatim into the website repo by
+   tools/build-samples.mjs and serves phaeacia.ai/passport/, whose topbar carries
+   the same classes with a nav of two links, one of them drop-md ("How sharing
+   works"). Moving drop-md up unscoped took that link off the marketing page
+   from 701 on a header with 300px to spare, and moving the product name up
+   unscoped hid "Agent Passport" there from 461. Caught by rendering
+   the website sample with this file swapped in, not by reading it.
+
+   `/upload` is in the topnav of every app page and of TOPBAR in _render.mjs, and
+   in no marketing nav, so .topbar:has(.navlink[href="/upload"]) is what says
+   "this is the app". A browser without :has() ignores these two rules and gets
+   the base ladder plus the wrap: the nav drops to a second line where the base
+   ladder's arithmetic is wrong for the app, which is the failure mode, not a
+   defect.
+
+   The numbers, swept one pixel at a time at a 16px root with the row able to
+   wrap and these two rules removed, so the sweep could not be answering its own
+   question: the Phaeacia link beside the full lockup and three other links fits
+   from 750 (at 700 on main the lockup shrank instead and the product name sat on
+   two lines from 701 to 749). The product name beside three links fits from 631,
+   stops fitting at 641 where the wrap padding steps from 20 to 32, and fits again
+   from 655; the two ranges below are that band, written out rather than rounded
+   into one number, because one number hid the name from 631 to 640 where main
+   showed it. Both breakpoints were first derived from the stylesheet (765 and
+   654) and both were wrong; a critic's screenshot diff against main at 640 and
+   764 is what found it. iPad portrait is 768 and fits. Between 461 and 640 the
+   name used to wrap to two lines with UPLOAD printed through it (ROW-160).
+
+   HOW THIN THESE ARE. The critic measured the content requirement with nothing
+   shrinking: the Phaeacia link needs 685.75px of inner width and 750 supplies
+   686; the product name needs 590.375px and 631 and 655 each supply 591. So the
+   three edges are right by 0.25, 0.625 and 0.625px, and a different mono face, a
+   letter-spacing change or a browser that measures text a pixel differently
+   moves all three. That is what a swept breakpoint is: the first width that
+   fits. The reason it is acceptable is the wrap above: a miss costs a second row
+   at one or two widths, never an overprint, which the critic confirmed with the
+   webfonts blocked and the :has() rules stripped at once (zero overlap across
+   3,606 samples, wrapping instead at 300-390, 461-630, 641-654 and 701-749).
+
+   THE NUMBERS ABOVE ARE FOR FOUR LINKS. The gallery added a fifth, and the two
+   edges were re-swept the same way with it in the nav: 834 and 742, one band
+   each, no gap at 631-640 this time. The method and the thinness are as
+   described; the sweep is in the comment under the About rule below. */
+@media (max-width: 833px) {
+  .topbar:has(.navlink[href="/upload"]) .navlink.drop-md { display: none; }
+}
+@media (max-width: 741px) {
+  .topbar:has(.navlink[href="/upload"]) .ph-lockup .ph-product { display: none; }
+}
+/* ABOUT SHEDS FROM 640 DOWN, ON THE APP ONLY, AND GALLERY NEVER SHEDS.
+   The gallery is the page a stranger lands on and the only nav route to it
+   from a phone; About is an explainer every page's body repeats, and it is in
+   the footer of every page carrying this nav, where the ladder sends what it
+   drops. An earlier version of this branch hid Gallery between 431 and 640
+   instead and brought About back; that was written when Gallery sat first in
+   the nav, and it inverted the priority. By href rather than a class: a drop
+   class would mean editing nine static navs and TOPBAR to move one breakpoint.
+
+   THE THREE EDGES ABOVE WERE RE-SWEPT WITH GALLERY IN THE NAV, 320 to 900 one
+   pixel at a time at a 16px root on /upload, /manage and /gallery, reading the
+   lockup's content right edge against the first visible link's left edge: the
+   full set with the product name fits from 834 (was 750 with four links), the
+   product name beside Upload, About, Manage or Delete and Gallery fits from 742
+   (was 631), and Upload, Manage or Delete and Gallery beside the mark and the
+   wordmark fit from 507, which is why .drop-sm's edge moved from 490 to 506
+   further down. With these edges the nav sits on one row at every width from
+   360 to 1280 at default text rendering, and overprints nothing at 16, 20 or
+   24px root; at 20 and 24 it drops to its own line on most widths, which is the
+   failure mode the wrap above exists for. "Default text rendering", not "a 16px
+   root": a critic found that Chrome's minimum-font-size setting at 16px leaves
+   the root at 16 and still widens the mono labels, so the bar takes two rows at
+   360-398, 431-469, 507-563, 641-669 and 742-971 under it, and never overprints.
+   Its instrument was pairwise rectangle intersection over every topbar box,
+   23,072 samples across eight pages, with a positive control, webfonts blocked
+   and the :has() rules stripped: the smallest clearance anywhere is the 4px
+   gap between two nav links. The theme toggle reads Auto in every sweep; Light
+   is one character wider and wraps the nav within itself at 320-323 at 24px. Below 360 it wraps at 16px too: main held one row down to 344, and
+   GALLERY is wider than the ABOUT it replaces at these widths by about 15px,
+   so the row now breaks from 359 down. 360 is the smallest width the record
+   has seen on a real device (ROW-45), and below it the cost is a second row. */
+@media (max-width: 640px) {
+  .topbar:has(.navlink[href="/upload"]) .navlink[href="/about"] { display: none; }
+}
+
+@media (max-width: 640px) {
+  .wrap { padding-inline: 20px; }
+  /* Asymmetric on a phone: 32 above the numeral, 72 below the last line.
+     The tokens already stepped the roles down; this is the other half of the
+     rule, and it is what stops a boundary reading as a hole with a rule
+     floating somewhere in the middle of it. */
+  .sec { padding-block: var(--ph-block) var(--ph-band); }
+  /* The last section already signs off with --ph-band underneath it, so the
+     footer's own 24px margin on top of that put 96px of nothing above its
+     rule and 154px between the last sentence and the first thing in the
+     footer. The section's air is the air; the footer keeps only its padding. */
+  .foot { margin-top: 0; }
+  .page { padding: 24px; }
+  .page.cover { padding: 32px 24px; gap: 32px; }
+  /* the folio and the document type get their own lines rather than fighting
+     the heading for a 350px row */
+  .page-head { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .cover-top { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .cover-type { text-align: left; }
+  .bearer-grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .fields > div { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  /* Tracking to zero, which is what a real machine-readable zone has. The size
+     follows from it: see the note on .mrz. */
+  .mrz { --pp-tr-mrz: 0; padding: 12px; }
+  .doc { border-radius: var(--ph-r-md); }
+
+  /* ── the overprint on a phone ─────────────────────────────────────────
+     The cover title is two lines by construction, and at 390 the second one
+     fills the column. A stamp anchored to the left of that block therefore
+     landed square on the word PASSPORT and neither survived: the joke stopped
+     being exact, which is the only register this document has.
+     It moves to the right instead. The title is mono, so its width is
+     arithmetic rather than a guess: PASSPORT is 8 characters at 28px with .1em
+     of tracking, about 157px, inside a 300px column at 390 and a 270px column
+     at 360. The clear space to its right is where a stamp would actually be
+     struck, and rotating about the RIGHT edge keeps the mark inside the cover
+     while its left end rises across the tail of the word. It overprints, which
+     is the intent, instead of colliding, which was the bug.
+     The desktop rule's inverse brass and 24px floor also apply here, with
+     no opacity or blend mode. */
+  .specimen {
+    left: auto;
+    right: -4px;
+    bottom: -20px;
+    transform-origin: right center;
+    /* 26px, not the 24px floor: at 24 the mark cleared the last letter of the
+       title and sat politely beside it, which is a badge again. At 26 its
+       left end crosses the tail of the word, which is what a stamp does.
+       Still above the 24px large-scale threshold, so the contrast argument in
+       the desktop note holds unchanged. */
+    font-size: 1.625rem;
+    padding: 6px 10px;
+  }
+
+  /* The photo well letterboxes. A 5:7 well is the right shape for a portrait
+     and the wrong shape for the sentence "no portrait, software bearer": at
+     152px wide it stood 213px tall to carry an oar and three words, which is a
+     quarter of a phone screen spent saying that there is nothing to see. Laid
+     on its side it is still a bordered well on the identity page, still the
+     first thing on page 2, and 88px instead of 213. */
+  .portrait {
+    aspect-ratio: auto;
+    max-width: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    text-align: left;
+  }
+  .portrait svg { height: 56px; }
+}
+
+/* Manage (or Delete) sheds at 490, not 430. With the mark at its real width and
+   the product name already gone, three links beside the lockup need 450px of
+   inner width, which is a 490px viewport at the 20px wrap padding. Swept 300 to
+   700 one pixel at a time at a 16px root: the nav dropped to a second line
+   from 431 to 490 with this at 430, and nowhere between 344 and 700 with it
+   at 490. Then the gallery link joined the nav and the same three plus Gallery
+   need 507: re-swept 320 to 900, the nav wrapped from 491 to 506 with this at
+   490 and nowhere from 360 up with it at 506. Every page's footer carries Manage and Delete, checked page by page and
+   in _render.mjs. Unscoped on purpose: only the app's pages carry a drop-sm
+   link, so on the website sample this rule matches nothing. */
+@media (max-width: 506px) {
+  .navlink.drop-sm { display: none; }
+}
+
+@media (max-width: 460px) {
+  /* The product name in the lockup is the first thing to go: the document
+     underneath says what this is, at length. On the app it already went above,
+     in the scoped block; this is the base rule the website sample relies on. */
+  .topbar .ph-lockup .ph-product { display: none; }
+  .topbar .ph-lockup .ph-wordmark { font-size: 1.25rem; }
+}
+
+@media (max-width: 430px) {
+  .navlink { padding: 0 8px; }
+  /* THE MARK GOES TOO, ON THE APP'S PAGES ONLY. Below 431 the row holds the
+     wordmark, two links and the toggle, and with the mark drawn at its real width
+     (it no longer shrinks) that is 350.5px of content in 350px of room at 390 and
+     the nav would drop to a second line on every iPhone at the default font. Half
+     a pixel, not the 3px a first version of this comment claimed from rounded
+     parts; the critic measured the parts unrounded. On
+     main the mark was "there" at these widths as an 18px sliver at 375 and 3.6px at
+     360, which reads as a rendering fault; hiding it costs the reader nothing,
+     it is aria-hidden and the wordmark is the link's whole accessible name.
+
+     THE :has() IS THE POINT OF THE SELECTOR. base.css is copied verbatim into the
+     website repo by tools/build-samples.mjs and served at phaeacia.ai/passport/,
+     whose topbar carries the same classes and, below 701, a nav of one link (its
+     other link is drop-md) with 84.5px to spare at 375 and 139.5 at 430, measured.
+     `/upload` is in the topnav of every app page and of TOPBAR in
+     _render.mjs, and in no marketing nav, so it is what says "this is the app". A
+     browser without :has() ignores the rule and gets the wrap instead, which is
+     the failure mode this header now has. The same rule, same selector, exists on
+     frontend/gallery-pages, written there for the same reason. */
+  .topbar:has(.navlink[href="/upload"]) .ph-lockup svg { display: none; }
+}
+
+/* v2.5 working controls. Functional boundaries use a stronger role than
+   decorative dividers; control labels retain the existing product wording. */
+button, .btn, input:not([type=checkbox]):not([type=radio]), select { min-height:48px; }
+input:not([type=checkbox]):not([type=radio]), textarea, select { border-color:var(--ph-mute); border-radius:8px; }
+input[type=checkbox], input[type=radio] { accent-color:var(--ph-deep); }
+input::placeholder, textarea::placeholder { color:var(--ph-mute); opacity:1; }
+:focus-visible { outline:3px solid var(--ph-deep); outline-offset:4px; }
+
+/* Human choices use the interface face; pasted passport code stays in mono. */
+select.field { font-family:var(--ph-sans); }

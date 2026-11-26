@@ -1,0 +1,59 @@
+platform: claude-ai
+checked: 2026-08-06
+capabilities:
+
+  web.fetch:
+    mechanism: "Built-in web search, plus reading public pages the assistant is pointed at"
+    requires: "all plans, Free included"
+    limits: "On Free, searches draw on the same daily usage limit as everything else. Nothing behind the owner's login is reachable this way."
+    degrades_to: "Nothing. If search is unavailable in the moment, the installer pastes the source text into the chat and the run is manual."
+    confidence: high
+    note: "Announced as available to all users including Free; verified against Anthropic's own web search announcement."
+
+  email.read:
+    mechanism: "Gmail connector, part of the first-party Google Workspace connectors"
+    requires: "all plans on claude.ai and Claude Desktop; on Team and Enterprise an Owner or Primary Owner must enable connectors at the organization level before a user can authenticate"
+    limits: "Gmail only, no other mail providers first-party. Attachment contents are not readable, metadata only. Some advanced Gmail search filters are unsupported. Google API rate limits apply. The connector also grants draft creation, which the read-notify envelope forbids using; it cannot send."
+    degrades_to: "The installer supplies the relevant messages by hand at run time, or the input is dropped and recorded as lost."
+    confidence: high
+    note: "Help centre wording is 'available for all users on Claude and Claude Desktop'; some third-party writeups claim paid-only, so have the installer confirm what they see."
+
+  calendar.read:
+    mechanism: "Google Calendar connector, part of the first-party Google Workspace connectors"
+    requires: "all plans on claude.ai and Claude Desktop; same organization-level gate on Team and Enterprise as Gmail"
+    limits: "Google Calendar only. Reads only the calendars of the connected Google account. The connector also grants create, update and delete on events, which the envelope forbids using; the branch must say this out loud to the installer."
+    degrades_to: "The installer pastes the day's or week's events into the chat at run time, or the input is dropped and recorded as lost."
+    confidence: high
+
+  files.read:
+    mechanism: "Upload to Project knowledge for stable documents; Google Drive connector for a live folder or document set"
+    requires: "Project knowledge on all plans, Free capped at five projects; Drive connector on all plans with the same Team and Enterprise organization gate"
+    limits: "Drive extracts text only, images embedded in documents are not processed. No first-party connector for Dropbox, OneDrive or a local folder from claude.ai chat. The Drive connector also grants file upload and folder creation, which the envelope forbids using. On paid plans large knowledge bases switch to retrieval rather than full context, so a specific line may not be seen on every run."
+    degrades_to: "Installer uploads the documents into Project knowledge manually, refreshed by hand when they change."
+    confidence: high
+
+  memory.prefs:
+    mechanism: "Claude memory, scoped per Project, each Project holding its own separate memory space and summary"
+    requires: "Free, Pro and Max on the current memory experience; Enterprise runs a legacy arrangement with organization-level controls. Searching past chats is a separate feature and is paid plans only."
+    limits: "Memory is a generated summary of conversations, not a store the agent can rely on for correctness. It can be paused or reset by the owner. It does not carry between Projects, and a chat Project's memory is not the same store as a Cowork project's memory."
+    degrades_to: "Preferences are written into the Project instructions instead, where they persist until edited and do not update on their own. Recorded as substituted."
+    confidence: medium
+    checked: 2026-08-10
+    note: "Plan coverage verified in the help centre. Nothing official states how quickly a stated preference becomes durable, so the branch verifies by echo rather than by promise. Consequence for a declared state: block: there is nowhere inside the envelope to keep a per-run snapshot here. Project knowledge is uploaded by the installer by hand, memory is a generated summary rather than a store, and writing a file back into a connected Drive is a write to an external system. Cowork projects are documented as stored locally while their scheduled runs are documented as executing in the cloud, so whether a Cowork run could write a local snapshot is contradictory in the sources and unverified; do not build on it. A declared state: block is a lost row."
+
+  chat.notify:
+    mechanism: "deliver the output to the installer. Two channels only: the chat inside the Project for an on-demand agent, and the Cowork scheduled task's run view for a scheduled one. The Project itself is the installed agent, built from Set project instructions plus project knowledge"
+    requires: "all plans, Free capped at five projects; the channel is chosen by the installer and the target is always a personal slot, never a value the passport carries"
+    limits: "No documented character ceiling on Project instructions, so the functional spec goes in whole. Scheduled runs do not deliver here: their output appears in the scheduled task's run view, not in the Project chat. Mail to the installer's own address is not available as a channel: the first-party Gmail connector can create drafts but cannot send, and a draft is not delivery, so the branch offers no mail route rather than inventing one."
+    degrades_to: "Nothing. The Project chat is always present."
+    confidence: medium
+    checked: 2026-08-10
+    note: "Widened because delivery is a channel the installer chooses, and narrowed by the platform: delivery is a channel the installer chooses, and this platform has fewer channels than the others. Confidence is medium only on the absence of an instruction-length ceiling: no published limit was found, which is not the same as a published absence of one."
+
+  schedule.run:
+    mechanism: "Scheduled task in Claude Cowork, created inside a Cowork project, run in the cloud"
+    requires: "paid plans only, Pro, Max, Team and Enterprise; Cowork is in beta and availability by surface has been rolling out plan by plan"
+    limits: "Not available in ordinary claude.ai chats or chat Projects. Cowork projects are documented as desktop-only and stored locally, with an Import from project option that pulls instructions and files across from a chat Project, so the agent exists twice and the two copies can drift. Documented cadences: hourly, daily, weekly, weekdays, manual. No published cap on task count; do not state one. Runs execute unattended, so the envelope matters more here, not less."
+    degrades_to: "On-demand. The installer opens the Project and asks for a run. Recorded as lost, with the losses wording: nothing runs while you are away."
+    confidence: low
+    note: "Fastest-moving row in this file. The branch instructs the assistant to ask the installer what they actually see in the sidebar and to adapt, rather than narrating a UI path."

@@ -1,0 +1,69 @@
+# Resolution rows for the generic install branch: any assistant that is not
+# ChatGPT, claude.ai or Claude Code, including a local model on the installer's
+# own hardware.
+#
+# This file inverts the other three. They record platform facts checked on a
+# date; here the platform cannot be known in advance, so no platform fact
+# exists. Each mechanism is the self-resolution the branch instructs: the
+# installing assistant states what it actually has for the capability, proves
+# it with real data, and records anything it cannot provide as a loss.
+# `confidence` therefore rates the procedure, not any platform, and `checked`
+# is the date the procedure was written, not a fact-check date.
+
+platform: generic
+checked: 2026-08-07
+capabilities:
+
+  web.fetch:
+    mechanism: "self-resolved: the assistant states what it has for fetching open pages, whether built-in browsing, a fetch or search tool, or nothing, and proves it by fetching one real dated item from a source the spec names"
+    requires: "a tool the assistant can actually invoke from the install conversation; claims about unavailable or untested tools are treated as nothing"
+    limits: "unknown until resolved; whatever the tool is, only open content is reachable and nothing behind the installer's login"
+    degrades_to: "the installer pastes the source content into the chat at run time, recorded as substituted; otherwise lost, naming the output section that goes thin"
+    confidence: high
+    note: "The most commonly available capability, and the cheapest to verify: one live fetch settles it."
+
+  email.read:
+    mechanism: "self-resolved: a mail connector the installer authorises on the provider's own screen, or a local tool that already reads their mail on their own machine, or nothing; verified by echoing one real subject and sender, never a body"
+    requires: "a read route that involves no secret changing hands; if the only route requires the installer to hand over a password, key or token, the route is forbidden and the capability is lost"
+    limits: "unknown until resolved; the branch requires stating any write side the route carries and never using it"
+    degrades_to: "the installer pastes the relevant messages at run time, which is files.read for that run and does not survive into an unattended one; otherwise lost"
+    confidence: medium
+    note: "Confidence is on the drill, not the outcome: many generic environments genuinely have no mail route, and the honest result there is a losses row."
+
+  calendar.read:
+    mechanism: "self-resolved, same shape as email.read: a read-only route granted by the installer, or nothing; verified by echoing one real event, looking ahead once if today is empty rather than declaring success on nothing"
+    requires: "same as email.read: no secret changes hands, the installer clicks any consent screen themselves"
+    limits: "unknown until resolved; read-only is a rule of the install, not something the route is assumed to enforce"
+    degrades_to: "the installer pastes the day's agenda at run time, or states fixed commitments as a slot answer; otherwise lost"
+    confidence: medium
+
+  files.read:
+    mechanism: "self-resolved: chat upload, a drive connector, or direct file access on the installer's machine; verified by quoting a line only the real document contains"
+    requires: "for direct file access, the installer names the paths this agent may read; the branch forbids reading anything else the assistant happens to reach"
+    limits: "unknown until resolved; a local assistant with broad file access is bounded by the installer's named paths, not by its reach"
+    degrades_to: "the installer pastes the content in per run, recorded as substituted; otherwise lost"
+    confidence: high
+
+  schedule.run:
+    mechanism: "self-resolved: a scheduler in the product, or an operating-system scheduler on the installer's machine that the installer sets up and loads themselves from a draft the assistant writes, or nothing"
+    requires: "for a machine scheduler: the machine on and awake at the scheduled time, and every capability the run touches already working without prompting, because an unattended run cannot answer questions"
+    limits: "a schedule proves itself only when it fires, after the install conversation is over; the branch caps it at delivered-unverified on install day, with a manual run now as the working proof"
+    degrades_to: "on-demand: nothing starts by itself and the installer says run; recorded as lost, and flagged before building if the spec marks the schedule criticality core"
+    confidence: medium
+    note: "The one capability where the generic environment is often stronger than the hosted platforms (a local machine has cron or launchd) and the verification is necessarily weaker."
+
+  chat.notify:
+    mechanism: "deliver the output to the installer. The reply in the conversation is always present and needs no resolution; every other channel is self-resolved, the assistant stating what it actually has (a file on the installer's machine, a notification on it, mail to their own address through a route they already have) and the installer choosing"
+    requires: "for a scheduled agent, one resolved answer: the exact place an unattended run's output lands (a task view, a file, a log), found once by the installer. The delivery target is always a personal slot; the passport carries no address, path or channel id from the original owner"
+    limits: "output goes to the installer and nowhere else, and the instruction text says so in writing; forwarding or additional recipients is a write capability and outside the envelope"
+    degrades_to: "nothing; the reply in the conversation is the channel every conversational assistant has"
+    confidence: high
+
+  memory.prefs:
+    mechanism: "self-resolved: product memory, a file the assistant can write on the installer's machine, or nothing; verified by the installer seeing the saved preference themselves or a fresh exchange repeating it back, never by the assistant's own claim"
+    requires: "nothing; the branch's standing rule makes correctness independent of the answer by writing everything load-bearing into the agent's instruction text"
+    limits: "partial on every platform per vocabulary.md, and doubly unknown here; memory carries drift and corrections only, never the baseline"
+    degrades_to: "preferences written into the instruction text, recorded as substituted: changing them means editing the text, not telling the assistant once"
+    confidence: high
+    checked: 2026-08-10
+    note: "High confidence because the drill never depends on memory working; the unknown platform only changes which losses row gets written. A declared state: block is a separate question from preferences and is self-resolved the same way: the assistant states whether it can write a value at the end of one run and read it at the start of the next, usually a file on the installer's own machine, proves it by writing one and reading it back in a fresh run, and records lost if it cannot. Writing into somebody else's system is outside the envelope and is never the answer."

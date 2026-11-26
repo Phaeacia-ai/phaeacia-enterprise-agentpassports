@@ -1,0 +1,67 @@
+# Resolution map fragment: ChatGPT
+# Merged into the product's resolution map. One entry per capability id in vocabulary.md
+# that is installable in v0.1. Facts checked against public sources on the date below;
+# UI labels and plan gates on this platform change often, so every row states its own
+# confidence and the branch text is written to ask rather than assert where confidence is low.
+
+platform: chatgpt
+checked: 2026-08-06
+capabilities:
+
+  web.fetch:
+    mechanism: "Built-in web search and browsing in chat, also available inside a scheduled run"
+    requires: "any plan, including Free"
+    limits: "message rate limits bite first on Free; paywalled or blocking sites are unreachable; inside a scheduled task a run happens at most hourly"
+    degrades_to: "installer pastes the source content into the conversation at run time, recorded as substituted"
+    confidence: high
+    note: "The only capability in this branch with no setup step and no plan gate."
+
+  email.read:
+    mechanism: "First-party Gmail or Outlook connector, connected by the installer in Settings"
+    requires: "paid plan (Go, Plus, Pro, Business, Enterprise, Edu); not available on Free; admin-enabled on Business, Enterprise and Edu"
+    limits: "read and search only within the v0.1 envelope; no inbox triggers and no monitoring, a run sees the mailbox only at the moment it runs; the connector on paid plans can also send with per-message approval as of mid-2026, which this envelope never enables"
+    degrades_to: "installer pastes or uploads the relevant messages, on-demand only; otherwise lost"
+    confidence: medium
+    note: "Plan gate is well attested. The Settings menu label is not: it has been Connectors, then Apps, and at least one 2026 source reports it under Plugins. Ask the installer to read out what they see rather than naming a path."
+
+  calendar.read:
+    mechanism: "First-party Google Calendar or Outlook Calendar connector, connected in Settings"
+    requires: "paid plan; not available on Free; admin-enabled on Business, Enterprise and Edu"
+    limits: "read only on consumer plans; workspace plans gained calendar write actions during 2026 behind an admin toggle, which this envelope never requests or uses"
+    degrades_to: "installer pastes the day's agenda at run time, on-demand only; otherwise lost"
+    confidence: medium
+    note: "Same menu-label uncertainty as email.read. Verify in Settings with the installer; this surface changed during 2026."
+
+  files.read:
+    mechanism: "Upload into the conversation (all plans), or a cloud drive connector such as Google Drive, OneDrive, SharePoint, Dropbox or Box (paid)"
+    requires: "upload: any plan, with a low daily cap on Free reported as 3 files per day. Drive connector: paid plan"
+    limits: "decisive limit: as of July 2026 a scheduled task cannot read files uploaded to a conversation, cannot read a Project's files, and cannot run inside a custom GPT. A scheduled agent that needs documents must use a connected drive or carry the content inside the task instruction"
+    degrades_to: "content inlined into the task instruction (frozen at install time), or the agent runs on-demand with an upload each time, which costs the schedule"
+    confidence: medium
+    note: "The scheduled-task file exclusion is single-sourced and dated July 2026. It shapes the whole branch, so re-verify it before relying on it; if it has been lifted, the scheduled case simplifies."
+
+  memory.prefs:
+    mechanism: "ChatGPT memory: saved memories plus referencing past chats, under Settings, personalization"
+    requires: "any plan; lightweight recall on Free, longer-term on paid"
+    limits: "installer can have it switched off; saved memory is capacity-capped and old entries get displaced; whether a scheduled run reliably reads saved memories is unverified"
+    degrades_to: "preferences and slot answers written into the task instruction text instead, recorded as substituted"
+    confidence: low
+    checked: 2026-08-10
+    note: "Never let correctness depend on this. The branch instructs that all slot answers live in the instruction text, and that the installer verifies any saved entry on their own memory settings screen rather than trusting the assistant's claim. Consequence for a declared state: block: there is no place on this platform to keep a per-run snapshot inside the envelope, since a scheduled run reads no uploaded or Project file, memory in a scheduled run is unverified, and writing a snapshot into a connected drive is a write to an external system. A declared state: block is therefore a lost row, and the branch carries the wording."
+
+  chat.notify:
+    mechanism: "deliver the output to the installer over any channel whose only recipient is the installer: the conversation for an on-demand agent; the scheduled tasks view for a scheduled one; a push notification on their device and an email to their own account address on run completion, both set under Settings, notifications"
+    requires: "in-chat output: any plan. Notifications from a scheduled run: paid, because the scheduler is paid. The channel is chosen by the installer and the target is always a personal slot, never a value the passport carries"
+    limits: "notifies the account holder only; the completion email goes to the installer's own account and must never be extended to other recipients, which would be email.send and outside the envelope; the boundary lives in the task instruction text, which must say the agent delivers to the installer and composes no other recipient"
+    confidence: medium
+    degrades_to: "output stays in the conversation and the installer reads it when they open it"
+    checked: 2026-08-10
+    note: "Widened because delivery is a channel the installer chooses: delivery is a channel the installer chooses, not a capability to refuse. Notification channels are user- and device-permission dependent, so confirm delivery with the installer after the first run rather than assuming."
+
+  schedule.run:
+    mechanism: "Scheduled Tasks: created by describing the task and its timing in chat, managed from the Scheduled view in the sidebar (dedicated page added June 2026)"
+    requires: "paid plan; not available on Free"
+    limits: "active task caps reported as Go 3, Plus 5, Business and Edu 10, Pro and Enterprise 15; a task runs at most once per hour; ignored tasks can auto-pause; no file uploads, Project files or custom GPTs inside a run, so the instruction must be self-contained; no human in the loop during a run"
+    degrades_to: "on-demand pinned conversation or saved prompt, recorded as loss"
+    confidence: medium
+    note: "Feature existence and the paid gate are solid; the per-plan numbers come from June 2026 reporting, not from a primary page, and the sidebar label may differ per build. The ~1500 character instruction budget is a product choice, not a verified platform limit. Never delete or pause an installer's existing task to free a slot."

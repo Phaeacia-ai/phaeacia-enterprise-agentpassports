@@ -1,0 +1,33 @@
+{
+  "id": "alpha",
+  "name": "SYNTHETIC Alpha Holdings",
+  "memberships": [
+    { "id": "m-alpha-1", "display_name": "SYNTHETIC Alpha admin", "role": "admin", "status": "active" },
+    { "id": "m-alpha-2", "display_name": "SYNTHETIC Alpha reviewer", "role": "reviewer", "status": "active" },
+    { "id": "m-alpha-3", "display_name": "SYNTHETIC Alpha member", "role": "member", "status": "active" }
+  ],
+  "groups": [
+    { "id": "g-alpha-ops", "name": "SYNTHETIC operations", "members": ["m-alpha-1", "m-alpha-2"] },
+    { "id": "g-alpha-all", "name": "SYNTHETIC everyone", "members": ["m-alpha-1", "m-alpha-2", "m-alpha-3"] }
+  ],
+  "passports": [
+    {
+      "id": "p-alpha-1",
+      "file": "tests/passport/fixtures/synthetic-empty.md",
+      "owner": "m-alpha-3",
+      "audience": "g-alpha-all",
+      "state": "submitted",
+      "release": null,
+      "installation": null
+    },
+    {
+      "id": "p-alpha-2",
+      "file": "tests/passport/fixtures/synthetic-money-declared.md",
+      "owner": "m-alpha-2",
+      "audience": "g-alpha-ops",
+      "state": "submitted",
+      "release": null,
+      "installation": null
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+# Resolution rows for the Claude Code install branch.
+# Verified 2026-08-06 against Anthropic's plugins, plugins-reference, skills, mcp,
+# memory, headless, cli-reference and tools-reference documentation, and against
+# the Agent Plugins 1.0.0 specification and schemas at agent-plugins.org.
+#
+# Format caveat, applies to every row below: Claude Code is not a documented
+# Agent Plugins client. It reads .claude-plugin/plugin.json and .mcp.json; the
+# Agent Plugins standard specifies plugin.json and mcp.json at the plugin root.
+# The branch writes both. Only skills/<name>/SKILL.md is shared by both formats.
+#
+# The platform date below is the date most rows were checked. A row that carries
+# its own `checked` was re-checked later and that date wins for that row.
+#
+# Not a row, because it is not a vocabulary id: authenticated reads from a system
+# the installer owns (a product database, a billing system, an analytics product)
+# resolve through the email.read mechanism generalised, an installer-added MCP
+# server or an environment variable referenced from .mcp.json. The branch carries
+# that case in full.
+
+platform: claude-code
+checked: 2026-08-06
+capabilities:
+
+  web.fetch:
+    mechanism: "built-in WebFetch and WebSearch tools, no server and no setup"
+    requires: "nothing beyond a working session; WebSearch needs a provider that exposes the server-side search tool"
+    limits: "WebFetch converts the page and answers a prompt with a small fast model, so results are lossy and not the raw page; it prompts on first use of a new domain unless a WebFetch(domain:...) rule allows it, and returns cross-host redirects instead of following them; WebSearch returns titles and URLs only, is capped at 200 calls per session, and is unavailable on Amazon Bedrock and on Azure-hosted Microsoft Foundry deployments"
+    degrades_to: "an MCP server exposing a search tool, or curl through Bash for the unprocessed page"
+    confidence: high
+    note: "the 200-call cap and the domain-prompt behaviour are version-gated; check claude --version if either matters. Consequence the branch states as a rule: because WebFetch returns a small model's answer rather than the page, an input whose value is a quantity must not be served through it, since a failed read and a wrong number are indistinguishable in the output"
+
+  email.read:
+    mechanism: "no built-in tool; either a mailbox connector added at claude.ai/customize/connectors and surfaced in Claude Code, or a remote MCP server added with claude mcp add --transport http <name> <url> and authorised through /mcp"
+    requires: "for the connector route, an active claude.ai subscription login as the authentication method; for the MCP route, a server the installer chooses themselves and an OAuth sign-in they complete in their own browser"
+    limits: "connectors are not loaded when ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN, apiKeyHelper, a third-party provider, or a claude setup-token token is the active auth; the plugin can ship only a placeholder server entry, and an entry with an empty url shows as not configured rather than as an error only from v2.1.208; no specific mailbox MCP server was verified by name"
+    degrades_to: "files.read over a mailbox the installer exports themselves, otherwise declared lost"
+    confidence: medium
+    note: "mechanism is high confidence, the existence and quality of any particular mailbox server is not; never name one the installer has not chosen"
+
+  calendar.read:
+    mechanism: "no built-in tool; either a calendar connector added at claude.ai/customize/connectors and surfaced in Claude Code, or a remote MCP server added with claude mcp add --transport http <name> <url> and authorised through /mcp"
+    requires: "identical to email.read: a claude.ai subscription login for the connector route, or an installer-chosen server plus their own OAuth sign-in"
+    limits: "identical to email.read; additionally, read-only is not enforced by the platform, so a server that also exposes event-creation tools needs those tools denied by rule to stay inside the envelope"
+    degrades_to: "the installer states their fixed commitments as a slot answer, otherwise declared lost"
+    confidence: medium
+    note: "deny rules for plugin server tools take the scoped name mcp__plugin_<plugin>_<server>__<tool>; that form is documented for hook matchers, not confirmed for permission rules, so verify in /permissions"
+
+  files.read:
+    mechanism: "built-in Read, Glob and Grep over the working directory"
+    requires: "the folder is the launch directory, or is added with claude --add-dir <path>, /add-dir <path>, or permissions.additionalDirectories in settings.json"
+    limits: "reads outside the working and additional directories prompt every time, which breaks unattended runs; --add-dir and /add-dir also auto-load .claude/skills from the added directory while the additionalDirectories setting does not; CLAUDE.md files in added directories are skipped unless CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD is set"
+    degrades_to: "the installer pastes the documents into the session, per run"
+    confidence: high
+    note: "also the answer for a declared state: block. A per-run snapshot is a dated file under the plugin's own folder, ~/.claude/skills/<plugin-name>/state/, which the run can already reach; ${PLUGIN_DATA} is the portable form of the same location, and whether that expansion reaches a Write inside a skill run is unverified, so the branch writes the absolute path"
+
+  memory.prefs:
+    mechanism: "three layers: slot answers written into the plugin's SKILL.md at install time, CLAUDE.md files at ~/.claude/CLAUDE.md or ./CLAUDE.md, and Claude Code's auto memory"
+    requires: "nothing to install; editing SKILL.md is how a preference changes, and the plugin must not write the installer's CLAUDE.md without showing them the diff"
+    limits: "auto memory is machine-local, scoped per repository at ~/.claude/projects/<project>/memory/, and only the first 200 lines or 25KB of MEMORY.md load per session; all three layers are context rather than enforcement, so adherence is not guaranteed; --bare skips CLAUDE.md, auto memory, plugins and MCP servers entirely"
+    degrades_to: "slot answers frozen in SKILL.md; corrections require editing the file by hand"
+    confidence: high
+    note: "partial on every platform per vocabulary.md; state the actual behaviour rather than promising persistence"
+
+  chat.notify:
+    mechanism: "deliver the output to the installer, over any channel whose only recipient is the installer: the reply in the terminal session; a file on the installer's own disk that the scheduled command appends to; mail to the installer's own address if they already have a mail connector or MCP server with a send tool; a local notification, for example osascript display notification on macOS"
+    requires: "for the chat reply, nothing; for a file, a path the installer names; for mail, an address the installer gives and a mail route they already have; the delivery target is always a personal slot, never a value carried in the passport"
+    limits: "an unattended run has no session to speak into, so a scheduled run delivers to a file or to the installer's own address; a mail connector grants send as a bundle and the platform cannot narrow it, so the boundary lives in the agent's instruction text and must be written there; any recipient who is not the installer is email.send or msg.send, outside the envelope and declared only"
+    degrades_to: "the scheduled run appends to a local file, and the installer reads it themselves"
+    confidence: high
+    checked: 2026-08-10
+    note: "Widened because delivery is a channel the installer chooses: delivery is a channel the installer chooses, not a capability to refuse. The channel list is mechanically ordinary on this platform; the mail route is only as good as the installer's own connector, which is why it is offered rather than assumed."
+
+  schedule.run:
+    mechanism: "the Agent Plugins standard has no cadence, but the platform has four schedulers and they are not equivalent. Use Claude Code's own scheduled tasks: local to the app, a cron expression in the installer's timezone, one directory per task under ~/.claude/scheduled-tasks/ holding that task's own SKILL.md, running while the app is open and catching up on next launch if it was closed when due. Not CronCreate, which is session-only, held in memory and capped at seven days. Not cloud routines via /schedule, which run in Anthropic's cloud with no path to the installer's machine or local connections. An operating system scheduler, launchd on macOS or cron elsewhere, invoking claude -p with the skill name in the prompt, remains the fallback for genuinely headless running"
+    requires: "for a scheduled task, the installer creates it in their own app, and the app is opened at or after the due time for the run to happen or catch up; for the operating system route, the installer writes and loads the plist or crontab line themselves and the run needs --allowedTools plus --permission-mode dontAsk; on every route, every capability the run touches is authorised before it fires"
+    limits: "a scheduled task carries its own SKILL.md, so the agent exists in two places unless the task body is a thin caller invoking /<plugin-name>:<skill-name> and nothing else, with both locations named to the installer per core step 6; whether a plugin skill loads inside a scheduled run is UNVERIFIED and must not be asserted, so the first fire is the test; an unattended run cannot answer a permission prompt or complete an OAuth re-authentication, so a lapsed connector or an expired claude.ai login turns it into a run that silently produces nothing; --bare must not be used because it skips the plugin; bypassPermissions is refused; a personal-scope plugin under ~/.claude/skills/ loads in every project, a project-scope one loads only from the launch directory and only after the workspace trust dialog; an operating system schedule lives outside the plugin folder and does not travel with it"
+    degrades_to: "on-demand, invoked as /<plugin-name>:<skill-name>, recorded as lost"
+    confidence: medium
+    checked: 2026-08-10
+    note: "Verified directly on 2026-08-10 on Claude Code 2.1.226 on macOS: ~/.claude/scheduled-tasks/ exists and holds a live task stored as <task-name>/SKILL.md, whose frontmatter carries name and description only; where the cron expression is stored was not located and is not asserted here. There is no scheduled-task subcommand in claude --help, so the task is created in the app. The catch-up-on-next-launch behaviour, the CronCreate limits and the cloud-routine boundary come from an internal test run of the same date, not from Anthropic documentation, so confidence stays medium and the branch asks the installer what their app shows."

@@ -1,0 +1,33 @@
+# Netlify site configuration (docs/self-hosting.md). Routes are declared per function in
+# netlify/functions/*.mjs (config.path), so no redirects are needed. The published tree is .site/, assembled from web/ and the
+# vendored tokens and fonts by scripts/build-site.mjs, which hashes, scans and inventories
+# it (pages design 4.6); tests/browser/dev-shell.mjs serves the same build locally.
+[build]
+  publish = ".site"
+  command = "node scripts/build-site.mjs --clean --out .site"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Every response under /api is private and never cached; the functions set the same headers
+# themselves (lib/http/response.mjs), and Netlify applies no custom header to a function's
+# answer (pages design O10), so the /api/* block has no effect there. The /* block is for
+# the static pages: no referrer, no inline script, no form submission, Trusted Types, no
+# framing, no powerful features (pages design section 3, rules 4 and 8).
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "private, no-store"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Referrer-Policy = "no-referrer"
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "DENY"
+    Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'none'; base-uri 'none'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types 'none'"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"

@@ -1,0 +1,20 @@
+{
+  "status": "reported",
+  "actor": "SYNTHETIC recipient, membership m-beta-2",
+  "at": "2026-09-10T09:15:00Z",
+  "branch": "generic",
+  "losses": [
+    {
+      "what": "Label colour hints",
+      "status": "lost",
+      "meaning": "The recipient's assistant prints plain text; the original showed each label in a colour"
+    },
+    {
+      "what": "Delivery target",
+      "status": "substituted",
+      "meaning": "Shown in this conversation only, as the recipient chose at install"
+    }
+  ],
+  "no_loss_reported": false,
+  "note": "SYNTHETIC installation record written by the fixture author. It stands in for the E5 installations row and is not an observed native run."
+}

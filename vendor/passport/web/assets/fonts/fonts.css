@@ -1,0 +1,29 @@
+/* Self-hosted per DESIGN-GUIDE section 1. Google Fonts is never hotlinked:
+   a third-party font request is a privacy leak on a site whose product
+   argument is about consent. Both faces are SIL OFL 1.1; the licence and
+   both families' copyright lines are in OFL.txt beside these woff2 files
+   (ROW-133 — this comment was the license's only home before that). */
+
+@font-face {
+  font-family: "Schibsted Grotesk";
+  src: url("./schibsted-grotesk-latin-wght-normal.woff2") format("woff2-variations");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("./dm-mono-latin-400-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "DM Mono";
+  src: url("./dm-mono-latin-500-normal.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}

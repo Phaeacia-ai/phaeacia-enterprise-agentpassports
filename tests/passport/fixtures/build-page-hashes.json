@@ -1,0 +1,12 @@
+{
+  "note": "SHA-256 of each page of `node scripts/check-render.mjs --out <dir>` with the committed renderer (tests/passport/render.test.mjs, L1). A change to the rendered output must update this file in the same commit.",
+  "pages": {
+    "catalog-alpha.html": "6c7c79c5e7cd55b3d443da9d63a2a3cc58cf7fa604466fd4084e6c919cc934de",
+    "catalog-beta.html": "0d64b2855f82ea69c717aa25e90f85611a6159a5201ef96339407b28682fe731",
+    "passport-p-alpha-1.html": "808b549dcb9b2ca59231cf9f47018be8d96351e9be9a2b7a304a44f6a93a0b5f",
+    "passport-p-alpha-2.html": "c61854eec5b5b1575897cb30048e4a233f5fc0412e35fa5157409f8aa939e862",
+    "passport-p-beta-1.html": "bbd2d8b9fb123c35b57d7f189e201bd36ab9963010e91828b6aa767d5c2b5865",
+    "passport-p-beta-2.html": "77f8ac062abc85e99d09e8ae2fc9e52643c05160760622bf78d646e0febf46c5",
+    "release-r-beta-2-generic.html": "21cba9f556b380ebd4a556f8181e3f0bf18f15a49c27372ed560756c34981275"
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "_note": "Delivery events in the shape Resend's webhook documentation gives for email.bounced, email.suppressed and email.failed (the source pages are named per event; shapes read 2026-09-21). The field names and the provider's own enumerated values (type, bounce.type, bounce.subType, suppressed.type, failed.reason) are the documented ones; every other value is synthetic.",
+  "email-bounced": {
+    "source": "https://resend.com/docs/webhooks/emails/bounced",
+    "example": {
+      "type": "email.bounced",
+      "created_at": "2026-01-02T03:04:05.678Z",
+      "data": {
+        "broadcast_id": "00000000-0000-4000-8000-0000000000b1",
+        "created_at": "2026-01-02T03:04:05.000Z",
+        "email_id": "00000000-0000-4000-8000-0000000000e1",
+        "message_id": "<synthetic-message@mail.example.invalid>",
+        "from": "Synthetic Sender <sender@example.invalid>",
+        "to": [
+          "recipient@example.invalid"
+        ],
+        "subject": "Synthetic subject",
+        "template_id": "00000000-0000-4000-8000-0000000000f1",
+        "bounce": {
+          "message": "Synthetic bounce message.",
+          "subType": "Suppressed",
+          "type": "Permanent"
+        },
+        "tags": {
+          "category": "synthetic"
+        }
+      }
+    }
+  },
+  "email-suppressed": {
+    "source": "https://resend.com/docs/webhooks/emails/suppressed",
+    "example": {
+      "type": "email.suppressed",
+      "created_at": "2026-01-02T03:04:05.678Z",
+      "data": {
+        "broadcast_id": "00000000-0000-4000-8000-0000000000b1",
+        "created_at": "2026-01-02T03:04:05.000Z",
+        "email_id": "00000000-0000-4000-8000-0000000000e1",
+        "message_id": "<synthetic-message@mail.example.invalid>",
+        "from": "Synthetic Sender <sender@example.invalid>",
+        "to": [
+          "recipient@example.invalid"
+        ],
+        "subject": "Synthetic subject",
+        "template_id": "00000000-0000-4000-8000-0000000000f1",
+        "suppressed": {
+          "message": "Synthetic suppression message.",
+          "type": "OnAccountSuppressionList"
+        },
+        "tags": {
+          "category": "synthetic"
+        }
+      }
+    }
+  },
+  "email-failed": {
+    "source": "https://resend.com/docs/webhooks/emails/failed",
+    "example": {
+      "type": "email.failed",
+      "created_at": "2026-01-02T03:04:05.678Z",
+      "data": {
+        "broadcast_id": "00000000-0000-4000-8000-0000000000b1",
+        "created_at": "2026-01-02T03:04:05.000Z",
+        "email_id": "00000000-0000-4000-8000-0000000000e1",
+        "message_id": "<synthetic-message@mail.example.invalid>",
+        "from": "Synthetic Sender <sender@example.invalid>",
+        "to": [
+          "recipient@example.invalid"
+        ],
+        "subject": "Synthetic subject",
+        "template_id": "00000000-0000-4000-8000-0000000000f1",
+        "failed": {
+          "reason": "reached_daily_quota"
+        },
+        "tags": {
+          "category": "synthetic"
+        }
+      }
+    }
+  }
+}

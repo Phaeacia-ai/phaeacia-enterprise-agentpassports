@@ -1,0 +1,27 @@
+{
+  "_note": "Inputs for the scalar() agreement check. tools/validate.py and web/lib/_validate.mjs each hold a scalar() that turns a regex-captured YAML scalar into its value. They are the same gate at two different doors: if they disagree, a passport one of them calls valid the other refuses, and the owner gets no message that explains it. web/tools/parity.mjs feeds this list to both and requires identical output.",
+  "_why_these": "The first four are the ordinary forms. The rest are the ones that actually caught a divergence on 2026-09-03, when the Python side used .strip(\"\\\"'\") and stripped any number of quotes of either kind from both ends. That is wrong about YAML and wrong in the permissive direction: it made the local validator accept values the endpoint refuses.",
+  "probes": [
+    "structural",
+    "\"structural\"",
+    "'structural'",
+    "  structural  ",
+    "\"'structural'\"",
+    "'\"structural\"'",
+    "\"structural",
+    "structural\"",
+    "'structural\"",
+    "\"\"",
+    "''",
+    "\"",
+    "'",
+    "",
+    "web.fetch",
+    "\"web.fetch\"",
+    "credentialed",
+    "\"credentialed\"",
+    "a\"b",
+    "it's",
+    "\"a'b\""
+  ]
+}

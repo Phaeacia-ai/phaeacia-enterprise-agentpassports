@@ -1,0 +1,232 @@
+/* Phaeacia v2.5, adopted 5 September 2026.
+   Adapter for existing product token names. The complete light palette stays
+   on bare :root; OS-dark and explicit-dark blocks redefine values only.
+   --ph-deep is the action role; --ph-tide is its hover value in this adapter.
+   Canonical specification: ~/Phaeacia/brand/DESIGN-GUIDE.md.
+   Existing spacing roles and passport structure are preserved. */
+:root {
+
+  --ph-paper: #F7F8F5;
+  --ph-paper-deep: #E6EFEE;
+  --ph-card: #FFFFFF;
+  --ph-line: #CED8D7;
+  --ph-line-soft: #E6EFEE;
+  --ph-ink: #142D35;
+  --ph-mute: #53686D;
+
+  --ph-ground-a: #F7F8F5;
+  --ph-ground-b: #F7F8F5;
+
+  --ph-deep: #17586A;
+  --ph-tide: #124A59;
+  --ph-shoal: #7FC3D0;
+  --ph-shoal-soft: #E6EFEE;
+
+  --ph-brass: #805923;
+  --ph-brass-inverse: #E6BF84; /* warm accent on a dark surface in either theme */
+  --ph-brass-soft: #F1E9DC;
+
+  --ph-good: #25654B;
+  --ph-warn: #805923;
+  --ph-bad: #A33232;
+
+  --pp-granted: #25654B;
+  --pp-refused: #A33232;
+
+  --ph-shadow:       0 1px 1px rgb(16 23 26 / .04), 0 16px 38px -22px rgb(16 23 26 / .32);
+  --ph-shadow-soft:  0 1px 2px rgb(16 23 26 / .05);
+
+  --ph-sans: "Schibsted Grotesk", ui-sans-serif, system-ui, -apple-system,
+             "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ph-mono: "DM Mono", ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+             Consolas, "Liberation Mono", monospace;
+
+  --ph-t-display: clamp(2.6rem, 1.6rem + 3.4vw, 4.25rem);
+  --ph-t-h1:      clamp(2.0rem, 1.4rem + 2.1vw, 3.0rem);
+  --ph-t-h2:      1.625rem;
+  --ph-t-h3:      1.25rem;
+  --ph-t-body:    1.0625rem;
+  --ph-t-small:   0.9375rem;
+  --ph-t-micro:   0.875rem;
+
+  --ph-lh-display: 1.04;
+  --ph-lh-head:    1.15;
+  --ph-lh-body:    1.62;
+
+  --ph-tr-display: -0.034em;
+  --ph-tr-head:    -0.02em;
+  --ph-tr-body:     0em;
+  --ph-tr-micro:    0.12em;
+
+  --ph-1: 4px;  --ph-2: 8px;  --ph-3: 12px; --ph-4: 16px;
+  --ph-5: 24px; --ph-6: 32px; --ph-7: 48px; --ph-8: 72px; --ph-9: 112px;
+
+  --ph-band:  var(--ph-9);
+  --ph-stack: var(--ph-8);
+  --ph-block: var(--ph-7);
+  --ph-pad:   var(--ph-6);
+
+  --ph-r-sm:   4px;
+  --ph-r-md:   8px;
+  --ph-r-lg:   8px;
+  --ph-r-tile: 22.27%;
+  --ph-r-pill: 999px;
+
+  --ph-measure:      66ch;
+  --ph-measure-lede: 54ch;
+  --ph-wrap:         1200px;
+
+  --ph-scheme: light;
+  color-scheme: var(--ph-scheme);
+}
+
+@media (max-width: 640px) {
+  :root {
+    --ph-band:  var(--ph-8);
+    --ph-stack: var(--ph-7);
+    --ph-block: var(--ph-6);
+    --ph-pad:   var(--ph-5);
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ph-paper: #071B23;
+    --ph-paper-deep: #183640;
+    --ph-card: #102A34;
+    --ph-line: #4F6E78;
+    --ph-line-soft: #183640;
+    --ph-ink: #F7F8F5;
+    --ph-mute: #B8C9CB;
+
+    --ph-ground-a: #071B23;
+    --ph-ground-b: #071B23;
+
+    --ph-deep: #7FC3D0;
+    --ph-tide: #A2D6DF;
+    --ph-shoal: #7FC3D0;
+
+    --ph-shoal-soft: #183640;
+
+    --ph-brass: #E6BF84;
+    --ph-brass-soft: #332C23;
+
+    --ph-good: #9FD6B2;
+    --ph-warn: #E6BF84;
+    --ph-bad: #FFB4A8;
+
+    --pp-granted: #9FD6B2;
+    --pp-refused: #FFB4A8;
+
+    --ph-shadow:      0 1px 1px rgb(0 0 0 / .5), 0 16px 38px -22px rgb(0 0 0 / .9);
+    --ph-shadow-soft: 0 1px 2px rgb(0 0 0 / .5);
+
+    --ph-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ph-paper: #071B23;
+  --ph-paper-deep: #183640;
+  --ph-card: #102A34;
+  --ph-line: #4F6E78;
+  --ph-line-soft: #183640;
+  --ph-ink: #F7F8F5;
+  --ph-mute: #B8C9CB;
+
+  --ph-ground-a: #071B23;
+  --ph-ground-b: #071B23;
+
+  --ph-deep: #7FC3D0;
+  --ph-tide: #A2D6DF;
+  --ph-shoal: #7FC3D0;
+
+  --ph-shoal-soft: #183640;
+
+  --ph-brass: #E6BF84;
+  --ph-brass-soft: #332C23;
+
+  --ph-good: #9FD6B2;
+  --ph-warn: #E6BF84;
+  --ph-bad: #FFB4A8;
+
+  --pp-granted: #9FD6B2;
+  --pp-refused: #FFB4A8;
+
+  --ph-shadow:      0 1px 1px rgb(0 0 0 / .5), 0 16px 38px -22px rgb(0 0 0 / .9);
+  --ph-shadow-soft: 0 1px 2px rgb(0 0 0 / .5);
+
+  --ph-scheme: dark;
+}
+
+body {
+  background: var(--ph-paper);
+  color: var(--ph-ink);
+  font-family: var(--ph-sans);
+  font-size: var(--ph-t-body);
+  line-height: var(--ph-lh-body);
+  font-synthesis-weight: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.ph-machine, code, kbd, samp, pre,
+[data-machine] {
+  font-family: var(--ph-mono);
+  font-size: 0.94em;
+  letter-spacing: 0;
+}
+
+.ph-label {
+  font-family: var(--ph-sans);
+  font-size: var(--ph-t-micro);
+  letter-spacing: 0;
+  color: var(--ph-mute);
+}
+
+h1, .ph-display {
+  font-size: var(--ph-t-display);
+  font-weight: 400;
+  line-height: var(--ph-lh-display);
+  letter-spacing: var(--ph-tr-display);
+  text-wrap: balance;
+}
+
+h2 { font-size: var(--ph-t-h2); font-weight: 600; letter-spacing: var(--ph-tr-head); line-height: var(--ph-lh-head); }
+h3 { font-size: var(--ph-t-h3); font-weight: 600; letter-spacing: -0.014em; }
+
+p { max-width: var(--ph-measure); }
+
+a {
+  color: var(--ph-deep);
+  text-decoration-thickness: from-font;
+  text-underline-offset: 3px;
+}
+a:hover { text-decoration-thickness: 2px; }
+
+:focus-visible {
+  outline: 3px solid var(--ph-deep);
+  outline-offset: 4px;
+}
+
+.ph-lockup { display: inline-flex; align-items: center; gap: .5em; color: var(--ph-deep); font-size: 1.625rem; }
+.ph-lockup svg { height: 1.42em; width: auto; display: block; }
+.ph-lockup .ph-wordmark {
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--ph-ink);
+}
+.ph-lockup .ph-product {
+  font-family: var(--ph-mono);
+  font-size: var(--ph-t-micro);
+  letter-spacing: var(--ph-tr-micro);
+  text-transform: uppercase;
+  color: var(--ph-mute);
+  border-left: 1px solid var(--ph-line);
+  padding-left: 13px;
+  margin-left: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

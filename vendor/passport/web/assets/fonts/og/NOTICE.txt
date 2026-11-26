@@ -1,0 +1,23 @@
+Static faces for the /og/<id>.png social card. The .ttf files are produced by
+web/tools/build-og-fonts.mjs; do not edit them by hand.
+
+schibsted-grotesk-400.ttf, schibsted-grotesk-600.ttf
+  Instances of ../schibsted-grotesk-latin-wght-normal.woff2 at wght 400 and 600.
+  Copyright 2023 The Schibsted-Grotesk Project Authors
+  (https://github.com/schibsted/schibsted-grotesk)
+
+dm-mono-400.ttf, dm-mono-500.ttf
+  ../dm-mono-latin-400-normal.woff2 and -500- re-saved as TTF.
+  Copyright 2020 The DM Mono Project Authors
+  (https://www.github.com/googlefonts/dm-mono)
+
+noto-sans-latin-ext-400.ttf
+  Noto Sans Regular (static, v42, fonts.gstatic.com), subset to the Latin
+  ranges the three faces above lack; the exact ranges are in
+  build-og-fonts.mjs and the resulting cmap is glyphs.json. Used only as a
+  glyph fallback inside the rendered PNG; never served as a web font.
+  Copyright 2022 The Noto Project Authors
+  (https://github.com/notofonts/latin-greek-cyrillic)
+
+All three families are licensed under the SIL Open Font License, Version 1.1.
+The licence text is ../OFL.txt.

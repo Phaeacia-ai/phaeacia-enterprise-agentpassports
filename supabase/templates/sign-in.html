@@ -1,0 +1,41 @@
+<!--
+  GoTrue's own sign-in mail, the one message this product does not send itself (E7 design 1.1 and 2.2; E2 pages design
+  lines 421 to 430). A returning member asks for a link on /signin/, the server calls GoTrue's /otp, and GoTrue sends
+  this template through the project's SMTP settings.
+
+  WHAT THE LINK MUST BE, and it is the whole reason this file exists. The secret travels in the URL FRAGMENT, which no
+  browser sends to any server, so it stays out of Netlify's edge and request logs, out of any proxy and out of a
+  Referer: <site>/signin/#token_hash=<hash>&type=magiclink. GoTrue's default template sends {{ .ConfirmationURL }}
+  instead, which is a GoTrue /verify URL carrying the token in the QUERY STRING and following a redirect; this product
+  never uses it. {{ .TokenHash }} is the same value the accept link carries, and /signin/ posts it to
+  /api/auth/verify, where the server exchanges it for the session cookies.
+
+  HOW IT IS INSTALLED, and what proves it. This file is the source of truth; a person pastes its body into the hosted
+  project's Magic Link template by hand (E7 1.4 D13 compares the hosted content's SHA-256 with this file's, and H-A12
+  and H-M4 record the observation that the mail arrives and lands on /signin/). NOTHING LOCAL PROVES ANY OF IT: the
+  local stack has no SMTP configured, so GoTrue's mailer is a no-op and no message is ever delivered (E2 section 11).
+  The local suites therefore never read this file, and a change to it is proven only by the hosted receipt.
+
+  WHAT IT MAY CONTAIN: the link, the site's name, and fixed sentences. It carries no customer content, no company
+  name, no tracking pixel, no image, no external stylesheet and no link but the one below; {{ .Email }} is deliberately
+  not printed, because the mail is already in that mailbox.
+
+  WHO IT REACHES, after E7-28: an account that has already been confirmed. GoTrue v2.192.0 refuses the sign-in start
+  for an account that is still unconfirmed, which every first-time invitee's is, so a first-time invitee never receives
+  this mail and is served by the invitation mail and, past its hour, by a new invitation (evidence/e7-mail.md).
+-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Your sign-in link for Phaeacia</title>
+  </head>
+  <body style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; line-height: 1.5; color: #1a1a1a">
+    <p>You asked to sign in to Phaeacia with this address.</p>
+    <p>
+      <a href="{{ .SiteURL }}/signin/#token_hash={{ .TokenHash }}&amp;type=magiclink">Open this link to sign in.</a>
+    </p>
+    <p>The link works once, and for one hour. After that, ask for a new one on the sign-in page.</p>
+    <p>If you did not ask to sign in, ignore this mail. Nothing happens until the link is opened.</p>
+  </body>
+</html>

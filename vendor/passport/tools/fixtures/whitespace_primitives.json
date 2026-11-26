@@ -1,0 +1,93 @@
+{
+  "note": "Every use of a bare whitespace primitive in the five files that read a passport, with the reason it cannot make the two gates disagree about what the passport declares. Test 19 in run_tests.sh requires this list and the source to match exactly, so a NEW one fails the suite until somebody writes down why it is safe. Six families of gate divergence were found on 2026-09-07 by a critic, one at a time, and four of them were not regexes at all, which is why this is keyed on the primitive rather than on backslash-s.",
+  "entries": [
+    {
+      "site": "_derive.mjs :: row: safeCellEcho(c[0].trim().replace(/`.*`/, '`...`')),",
+      "why": "echoes a consent cell back for DISPLAY. The verdict on that row was decided above."
+    },
+    {
+      "site": "_derive.mjs :: row: safeCellEcho(c[0].trim().replace(/`[^`]*money\\.[^`]*`/gi, '`money.*`')),",
+      "why": "the same consent-cell echo, money variant: it collapses a money id before showing the row back to the reader, and the verdict on that row was decided above with the WS_MD cell split."
+    },
+    {
+      "site": "_derive.mjs :: row: safeCellEcho(c[0].trim().replace(/`[^`]*money\\.[^`]*`/gi, '`money.*`')),",
+      "why": "the SECOND of two identical lines, at _derive.mjs:334 and :353, in the two envelope-token branches. Counted separately because code_lines() strips indentation and one reason was covering both, which is the collapse the whole-line key was supposed to end. Same argument as its twin: message echo of a consent cell, .trim() on text already read out of a WS_MD-narrowed cell, and it decides nothing about the verdict."
+    },
+    {
+      "site": "_validate.mjs :: if (seen[i].length !== 1 || dupes[i] !== 1) bad.push(h.replace(/^##\\s*/, ''));",
+      "why": "strips the hashes off a heading for the ERROR MESSAGE naming which section is wrong. Both counts it reports were decided above with structuralTrim: seen[] is occurrences in the body, dupes[] is occurrences in the whole file, and this line only formats the name. Rewritten from a forEach to an if when check 4.2 became two-sided; the primitive and the reason are unchanged."
+    },
+    {
+      "site": "_validate.mjs :: ['a URL carrying a credential', /(?<=\\S)[?&](?:(?:token|key|secret|auth|apikey|api_key|access_token)=(?!(?:\\$\\{[A-Za-z_][A-Za-z_]{0,64}\\}|\\{\\{[A-Za-z_][A-Za-z _.-]{0,64}\\}\\}|<[A-Za-z_][A-Za-z _.-]{0,64}>|\\[[A-Za-z_][A-Za-z _.-]{0,64}\\])(?=[\\s&#]|$))\\S+|(?:[Ss][Ii][Gg]|(?:[Xx]-[A-Za-z][A-Za-z0-9]{1,9}-)?[Ss][Ii][Gg][Nn][Aa][Tt][Uu][Rr][Ee])=(?!(?:\\$\\{[A-Za-z_][A-Za-z_]{0,64}\\}|\\{\\{[A-Za-z_][A-Za-z _.-]{0,64}\\}\\}|<[A-Za-z_][A-Za-z _.-]{0,64}>|\\[[A-Za-z_][A-Za-z _.-]{0,64}\\])(?=[\\s&#]|$))[^\\s&#]{16,})/],",
+      "why": "a credential-scrub pattern. The scrub rules are held to the Python ones by SHARED VECTORS in fixtures/vendor_probes.json and fixtures/secret_probes.json, run through both engines on the same strings, so an alphabet difference here shows up as a vector disagreement rather than silently. Converging them by class instead would be a separate change with its own corpus."
+    },
+    {
+      "site": "_validate.mjs :: ['a credential assignment', /(?<![A-Za-z0-9_.\\-])(?:[A-Za-z0-9_.\\-]*(?:[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]|[Tt][Oo][KkK][Ee][Nn]|[Ssſ][Ee][Cc][Rr][Ee][Tt]|[Aa][Uu][Tt][Hh]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll]|[Pp][Aa][Ssſ][Ssſ][Pp][Hh][Rr][Aa][Ssſ][Ee])s?|[A-Za-z0-9_.\\-]*[Aa][Pp][Ii][_\\-]?[KkK][Ee][Yy]s?|[A-Za-z0-9_.\\-]*[a-z0-9][KK]eys?|(?!(?:[Cc][Aa][Cc][Hh][Ee]|[Ss][Oo][Rr][Tt]|[Pp][Aa][Rr][Tt][Ii][Tt][Ii][Oo][Nn]|[Ii][Dd][Ee][Mm][Pp][Oo][Tt][Ee][Nn][Cc][Yy]|[Ff][Oo][Rr][Ee][Ii][Gg][Nn])[_\\-.][KkK][Ee][Yy]s?(?![A-Za-z0-9_.\\-]))[A-Za-z0-9_.\\-]*[_\\-.][KkK][Ee][Yy]s?)(?![A-Za-z])[\\\"']?\\s*[:=]\\s*(?:Bearer\\s+)?[\\\"']?(?!(?:[A-Za-z_][A-Za-z0-9_]*\\.)+[A-Za-z_][A-Za-z0-9_]*(?![A-Za-z0-9_\\-+\\/=~.]))(?!(?:[Yy][Oo][Uu][Rr]|[Mm][Yy]|[Ii][Nn][Ss][Ee][Rr][Tt]|[Rr][Ee][Pp][Ll][Aa][Cc][Ee]|[Ee][Xx][Aa][Mm][Pp][Ll][Ee]|[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr]|[Cc][Hh][Aa][Nn][Gg][Ee][Mm][Ee]|[Ss][Aa][Mm][Pp][Ll][Ee]|[Dd][Uu][Mm][Mm][Yy]|[Pp][Aa][Ss][Tt][Ee]|[Tt][Oo][Dd][Oo]|[Xx][Xx][Xx])[A-Za-z0-9_\\-]*(?![A-Za-z0-9_\\-+\\/=~.]))(?![A-Za-z0-9_\\-+\\/=~.]{0,128}[_\\-]?[Hh][Ee][Rr][Ee](?![A-Za-z0-9_\\-+\\/=~.]))(?![A-Za-z0-9_\\-+\\/=~.]{0,128}\\/[A-Za-z0-9_\\-+\\/=~.]{0,128}\\.[A-Za-z]{2,5}(?![A-Za-z0-9_\\-+\\/=~.]))[A-Za-z0-9_\\-+\\/=~.]{20,}[\\\"']?/],",
+      "why": "a credential-scrub pattern, held by shared vectors."
+    },
+    {
+      "site": "_validate.mjs :: ['a database URL carrying a password', /\\b[a-z][a-z0-9+.\\-]{0,31}:\\/\\/[^\\s:\\/@]+:(?!<(?:[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]|[Ss][Cc][Rr][Uu][Bb][Bb][Ee][Dd]|[Rr][Ee][Mm][Oo][Vv][Ee][Dd]|[Hh][Ii][Dd][Dd][Ee][Nn]|[Mm][Aa][Ss][Kk][Ee][Dd]|[Ee][Ll][Ii][Dd][Ee][Dd]|[Oo][Mm][Ii][Tt][Tt][Ee][Dd]|[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr]|[Yy][Oo][Uu][Rr][-_]?[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Xx]+|\\*+)(?:[:_ -][A-Za-z]+)*[-_0-9]*>@|\\[(?:[Rr][Ee][Dd][Aa][Cc][Tt][Ee][Dd]|[Ss][Cc][Rr][Uu][Bb][Bb][Ee][Dd]|[Rr][Ee][Mm][Oo][Vv][Ee][Dd]|[Hh][Ii][Dd][Dd][Ee][Nn]|[Mm][Aa][Ss][Kk][Ee][Dd]|[Ee][Ll][Ii][Dd][Ee][Dd]|[Oo][Mm][Ii][Tt][Tt][Ee][Dd]|[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr]|[Yy][Oo][Uu][Rr][-_]?[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Xx]+|\\*+)(?:[:_ -][A-Za-z]+)*[-_0-9]*\\]@|\\*+@|\\$\\{[A-Za-z_][A-Za-z0-9_]*\\}@|\\$[A-Za-z_][A-Za-z0-9_]*@)[^\\s:\\/@]{3,}@[^\\s\\/]+/],",
+      "why": "a credential-scrub pattern, held by shared vectors."
+    },
+    {
+      "site": "_validate.mjs :: ['a password assignment',   /(?:(?<![A-Za-z0-9_.\\-])(?:(?:[A-Za-z0-9_.\\-]*[_\\-.][Pp][Aa][Ssſ][Ssſ]|[A-Za-z0-9_.\\-]*[A-Za-z0-9][Pp][Aa][Ssſ][Ssſ])(?![A-Za-z])(?=[\\\"'`]?[ \\t]*(?:\\r?\\n[ \\t]*)*[:=](?![=>~:])[ \\t]*(?:\\r?\\n[ \\t]*)*[\\\"'`]?(?=[^\\s\\\"']{8})(?=[^\\s\\\"']{0,256}[0-9]))[\\\"'`]?[ \\t]*(?:\\r?\\n[ \\t]*)*[:=](?![=>~:])[ \\t]*(?:\\r?\\n[ \\t]*)*[\\\"'`]?(?![\\\"'`])(?=[^\\s\\\"']{3})(?![\\[{(<>\\/\\]])(?!(?:[Tt]rue|TRUE|[Ff]alse|FALSE|[Nn]ull|NULL|[Nn]il|None|undefined|void)(?![A-Za-z0-9_]))(?!(?:[A-Za-z_][A-Za-z0-9_]*\\.)+[A-Za-z_][A-Za-z0-9_]*(?![A-Za-z0-9_.]))(?![A-Za-z_][A-Za-z0-9_]*[ \\t]*\\()(?!\\$\\{)(?!\\$[A-Z_][A-Z0-9_]*(?![A-Za-z0-9_]))(?!(?:[Yy][Oo][Uu][Rr]|[Mm][Yy]|[Ii][Nn][Ss][Ee][Rr][Tt]|[Rr][Ee][Pp][Ll][Aa][Cc][Ee]|[Ee][Xx][Aa][Mm][Pp][Ll][Ee]|[Pp][Ll][Aa][Cc][Ee][Hh][Oo][Ll][Dd][Ee][Rr]|[Cc][Hh][Aa][Nn][Gg][Ee][Mm][Ee]|[Ss][Aa][Mm][Pp][Ll][Ee]|[Dd][Uu][Mm][Mm][Yy]|[Pp][Aa][Ss][Tt][Ee]|[Tt][Oo][Dd][Oo]|[Xx][Xx][Xx])[A-Za-z\\-]*(?![A-Za-z0-9_\\-+\\/=~.]))(?![0-9]{1,7}(?![A-Za-z0-9_.\\-]))(?![\\^~>=<]*[0-9]+\\.[0-9]+)\\S+(?:[ \\t]+\\S+)*|[A-Za-z0-9_.\\-]*(?:[Pp][Aa][Ssſ][Ssſ][Ww][Oo][Rr][Dd]|[Pp][Aa][Ssſ][Ssſ][Ww][Dd]|[Pp][Ww][Dd])s?(?![A-Za-z])[\\\"'`]?\\s*[:=]\\s*[\\\"'`]?\\S+(?:[ \\t]+\\S+)*))/],",
+      "why": "a credential-scrub pattern, held by shared vectors. See the URL rule above."
+    },
+    {
+      "site": "_validate.mjs :: const LINK = /!?\\[[^\\]]{0,256}\\]\\(\\s*([^)\\s]+)/g;",
+      "why": "the Markdown link scan, site-only like TAG, and wider means more links checked."
+    },
+    {
+      "site": "_validate.mjs :: const TAG = /<\\/?[A-Za-z][A-Za-z0-9-]*(\\s[^>]*)?>/g;",
+      "why": "the HTML-tag scan for check 21. Python has no twin: check 21 is a site-only rule, so there is nothing for it to diverge from. A wider class here matches MORE tags, which is the refusing direction."
+    },
+    {
+      "site": "_validate.mjs :: const collapsed = text.replace(/money\\.\\S*/gi, 'money.*').trim();",
+      "why": "collapses a money id for a MESSAGE. Display only."
+    },
+    {
+      "site": "_validate.mjs :: const ct = String(contentType).split(';')[0].trim().toLowerCase();",
+      "why": "an HTTP Content-Type header, not passport text. Nothing in a passport reaches it."
+    },
+    {
+      "site": "_validate.mjs :: return /\\s/.test(inner) && !inner.includes('=');",
+      "why": "the bracketed-placeholder heuristic inside the scrub path, held by the same shared vectors."
+    },
+    {
+      "site": "passport-to-page.py :: body = \"\\n\".join(lines[fences[0] + 1:fences[-1]]).strip()",
+      "why": "trims blank lines off a block being RENDERED, after every gate has run."
+    },
+    {
+      "site": "passport-to-page.py :: core = read(core_path).rstrip() + judge_block()",
+      "why": "build-time file assembly. Reads files off disk that this repo wrote, not passport text."
+    },
+    {
+      "site": "passport-to-page.py :: out[key] = core + \"\\n\\n\" + read(path).rstrip() + \"\\n\"",
+      "why": "the same build-time file assembly, one line down: it joins the installer core to a platform branch, both of them files this repo wrote, and no passport text passes through it."
+    },
+    {
+      "site": "passport-to-page.py :: stripped = text.strip()",
+      "why": "the golden-example shape check, on a block already inside a fence. Both engines see the same fenced text and the check is Python-only; no twin to diverge from."
+    },
+    {
+      "site": "validate.py :: before = norm[:m.start()].rstrip().rsplit(\" \", 2)",
+      "why": "scrub message context: finds the words before a match so the report reads sensibly. Message text only."
+    },
+    {
+      "site": "validate.py :: for word in re.split(r\"[ \\t]+\", strip_blanks(run)):",
+      "why": "consent-cell tokenisation: splits an already-narrowed cell on the EXPLICIT class [ \\t], which is the fixed form this whole conversion produces rather than a runtime class. re.split is on the scan list because it can carry a runtime class in its pattern; this one cannot, and its twin in _validate.mjs uses the same literal class."
+    },
+    {
+      "site": "validate.py :: for word in re.split(r\"[ \\t]+\", token):",
+      "why": "consent-cell tokenisation: splits an already-narrowed cell on the EXPLICIT class [ \\t], which is the fixed form this whole conversion produces rather than a runtime class. re.split is on the scan list because it can carry a runtime class in its pattern; this one cannot, and its twin in _validate.mjs uses the same literal class."
+    },
+    {
+      "site": "validate.py :: return re.sub(r\"money\\.\\S*\", \"money.*\", text, flags=re.I)",
+      "why": "scrub_money(): collapses a money.* capability id inside a MESSAGE so a refusal never echoes the specific one. Backslash-S, so it does read a runtime class, and the two engines disagree about six characters inside it: the twin in _validate.mjs is the same expression and the widest disagreement is where the match stops, which changes at most how much of an id is echoed in text nobody parses. Display only; it cannot change a verdict on either side."
+    },
+    {
+      "site": "validate.py :: text = text.strip()",
+      "why": "clip_echo(): caps a cell echo for a MESSAGE. Changes what is printed, never whether a passport is accepted."
+    }
+  ]
+}

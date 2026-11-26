@@ -1,0 +1,22 @@
+{
+  "name": "enterprise-phaeacia",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Phaeacia Enterprise: a multi-company workspace for reviewing and distributing agent configurations, built on Agent Passport. Archived.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Phaeacia-ai/phaeacia-enterprise-agentpassports"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=26.8.1"
+  },
+  "scripts": {
+    "check": "bash scripts/check.sh",
+    "test": "node --test tests/passport/"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.12"
+  }
+}

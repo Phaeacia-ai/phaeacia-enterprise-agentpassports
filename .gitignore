@@ -1,0 +1,12 @@
+.DS_Store
+__pycache__/
+.env
+.env.*
+!.env.example
+node_modules/
+.scratch/
+.site/
+checkouts/
+*-passport.link.md
+# Opt-in measurement and journey runs write their records here (CAPACITY_EVIDENCE=1, --evidence, tests/e8/load/).
+/evidence/

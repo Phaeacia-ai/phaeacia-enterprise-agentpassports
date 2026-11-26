@@ -1,0 +1,15 @@
+SYNTHETIC source configuration, authored for tooling preparation only.
+When I paste records and say run, return them as Markdown bullets in ascending identifier
+order. Each bullet is identifier, colon, space, label. Preserve labels exactly. Do not add
+a preamble or any other prose. Start from the supplied records every time, remember nothing
+between runs, and use no tools or connected accounts. Reply only in this conversation.
+
+SYNTHETIC input:
+C3: copper
+A1: amber
+B2: blue
+
+SYNTHETIC expected output, authored rather than observed:
+- A1: amber
+- B2: blue
+- C3: copper
